@@ -18,19 +18,28 @@
  */
 
 #include <ESP8266WiFi.h>
-
-
 #include <OneWire.h>
 #include <DallasTemperature.h>
 void printAddress(DeviceAddress);
 void printTemperature(DeviceAddress);
 String fl2str(float);
+
+//Serial
+#define SERIAL_SPEED 115200
+//wifi
+
+const char* ssid     = "xxxxx";
+const char* password = "yyyyyyy";
+const char* host = "94.19.113.221";
+
+String MAC = "FFFF0000FFFF"; //main device mac-address
+String POST_string = "";
+
 #define BMP_EXIST 1  
 #define DHT_EXIST 1 
 #define DALLAS_EXIST 1
-#define NARODMON 1
-String MAC = "FFFF0000FFFF";
-String POST_string = "";
+#define BH1750_EXIST 1
+#define MQ4_EXIST 0
 
 #if BMP_EXIST == 1
   #include <Wire.h>
@@ -39,10 +48,20 @@ String POST_string = "";
   Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);
 #endif
 
+#if BH1750_EXIST == 1
+  #include <Wire.h>
+  #include <BH1750.h>
+  BH1750 lightMeter;
+#endif
+
 #if DHT_EXIST == 1
 #define DHTLIB_OK 0
 #define DHTLIB_ERROR_CHECKSUM -1
 #define DHTLIB_ERROR_TIMEOUT -2
+
+#if MQ4_EXIST == 1
+int DIGITAL_SENSOR_PIN = 12;
+#endif
 
 class dht11
 {
@@ -110,7 +129,6 @@ dht11 DHT;
 #define DHT11_PIN 2
 #endif
 
-
 #if DALLAS_EXIST == 1
   #define ONE_WIRE_BUS 13
   #define TEMPERATURE_PRECISION 12
@@ -119,12 +137,6 @@ dht11 DHT;
   int numberOfDevices; 
   DeviceAddress tempDeviceAddress; 
 #endif
-
-
-const char* ssid     = "xxxxx";
-const char* password = "yyyyyyy";
-const char* host = "94.19.113.221";
-
 
 void displaySensorDetails(void)
 {
@@ -136,7 +148,7 @@ void displaySensorDetails(void)
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(SERIAL_SPEED);
   delay(150);
   Serial.println("=================== CONFIG ==================");
   
@@ -185,8 +197,11 @@ void setup() {
         
         Serial.print("Setting resolution to ");
         Serial.println(TEMPERATURE_PRECISION,DEC);
+        
+        // set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
         sensors.setResolution(tempDeviceAddress, TEMPERATURE_PRECISION);
-        Serial.print("Resolution actually set to: ");
+        
+         Serial.print("Resolution actually set to: ");
         Serial.print(sensors.getResolution(tempDeviceAddress), DEC); 
         Serial.println();
       }else
@@ -197,6 +212,10 @@ void setup() {
       }
     }
 
+  #endif
+  
+  #if BH1750_EXIST == 1
+    lightMeter.begin();
   #endif
 
   #if BMP_EXIST == 1
@@ -209,10 +228,12 @@ void setup() {
     displaySensorDetails();
   #endif  
 
- 
+#if MQ4_EXIST == 1
+  pinMode(DIGITAL_SENSOR_PIN, INPUT);
+#endif
+  
  Serial.println("=============== END OF CONFIG ===============");
  Serial.println("");
- 
 }
 
 void printAddress(DeviceAddress deviceAddress)
@@ -224,7 +245,6 @@ void printAddress(DeviceAddress deviceAddress)
   }
 }
 
-
 #if DALLAS_EXIST == 1
   String aGetTempAddress(DeviceAddress deviceAddress)
   {
@@ -234,7 +254,6 @@ void printAddress(DeviceAddress deviceAddress)
       int a,b =0;
       a =(int)floor(deviceAddress[i]/16);
       b= (int)floor(deviceAddress[i]%16);
-
       a<10?temps+=(String)a:temps+=(String)(char((a-10)+'A'));
       b<10?temps+=(String)b:temps+=(String)(char((b-10)+'A'));
     }
@@ -260,22 +279,31 @@ void printAddress(DeviceAddress deviceAddress)
 
 String fl2str(float src){
   String temp = "";
+  String sign = "";
+  if(src<0){
+    sign= "-";
+    src = abs(src);
+  }
+  
   int a,b,c=0;
   a=(int)round(src*100);
   b=(int)floor(a/100);
   c=(int)floor(a%100);
-  
+  temp+= sign;
   temp+= String(b);
   temp+= ".";
   temp+= String(c);
   return temp;
 }
+
 void loop() {
   delay(600000);
   //++value;
   Serial.print("Millis: \t"); Serial.println(millis());
   Serial.print("connecting to \t");
   Serial.println(host);
+  
+  // Use WiFiClient class to create TCP connections
   WiFiClient client;
   const int httpPort = 80;
   if (!client.connect(host, httpPort)) 
@@ -303,7 +331,6 @@ void loop() {
     
   #endif
 
-
 #if BMP_EXIST == 1
   sensors_event_t event;
   bmp.getEvent(&event);
@@ -329,7 +356,14 @@ void loop() {
   }
 #endif
 
+#if BH1750_EXIST == 1
+ uint16_t lux = lightMeter.readLightLevel(); //54000
 
+    POST_string += "&";
+    POST_string += MAC;
+    POST_string += "05=";
+    POST_string += (String)lux;
+#endif
 
 #if DHT_EXIST == 1
   int chk;
@@ -346,27 +380,34 @@ void loop() {
   POST_string += fl2str(DHT.temperature);
 #endif
 
+#if MQ4_EXIST == 1
+  int d_sensor_val = digitalRead(DIGITAL_SENSOR_PIN);
+  POST_string += "&";
+  POST_string += MAC;
+  POST_string += "06=";
+  POST_string += fl2str(DHT.humidity);
+#endif
 
   Serial.println();
-
 
   Serial.print("Requesting URL: ");
   Serial.println(POST_string);
 
-client.print(String("POST http://narodmon.ru/post.php HTTP/1.0\r\nHost: narodmon.ru\r\nContent-Type: application/x-www-form-urlencoded\r\n"));
-client.print(String("Content-Length: " + String(POST_string.length()) + "\r\n\r\n" + POST_string + "\r\n\r\n"));
+  client.print(String("POST http://narodmon.ru/post.php HTTP/1.0\r\nHost: narodmon.ru\r\nContent-Type: application/x-www-form-urlencoded\r\n"));
+  client.print(String("Content-Length: " + String(POST_string.length()) + "\r\n\r\n" + POST_string + "\r\n\r\n"));
 
-               
   delay(10);
   
   // Read all the lines of the reply from server and print them to Serial
   Serial.println("server reply =====> ");
   Serial.println("");
+  
   while(client.available()){
     String line = client.readStringUntil('\r');
     
     Serial.print(line);
   }
+  
   Serial.println("server reply <===== ");
   Serial.println();
   Serial.println("closing connection");
@@ -375,4 +416,3 @@ client.print(String("Content-Length: " + String(POST_string.length()) + "\r\n\r\
    
    Serial.println();
 }
-
