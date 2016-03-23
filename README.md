@@ -12,6 +12,7 @@ This is a rough sketch of home weather station based on esp8266-201 wifi module.
 - bmp180 - barometer and thermometer
 - dth11 - humidity and thermometer
 - ds18b20 - termometer
+- BH1750 -Digital Light Sensor
 - 4.7k and 10k resistors
 - 3.3v power supply
 - wires
