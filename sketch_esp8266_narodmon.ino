@@ -1,6 +1,6 @@
 /*
  *  This sketch sends data via HTTP POST requests to narodmon.ru service.
- *  Copyright <klavatron> 2016-2019
+ *  Copyright <klavatron> 2015-2019
  *
  *  ***DRAFT***
  *
@@ -13,7 +13,7 @@
  *           MQ4 (trigger)
  *
  *  You need to change:
- *                      String MAC = "ABCDEFABCDEF"- hw address of device
+ *                      String DEV_ID = "ABCDEFABCDEF"- hw address of device
  *                      const char* ssid = "SSID" - name of wifi AP
  *                      const char* password = "PASSWORD" - password of wifi AP
  *                      const char* host = "185.245.187.136" - ip of narodmon.ru
@@ -74,7 +74,11 @@ static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
 #endif //USELED
 
 String float_to_sting(float); //convert float value to a proper string
-void poll_sensors(); //poll sensors, collect data to query string
+void read_sensors(); //read sensors, collect data to query string
+unsigned long last_update_millis;  
+unsigned long current_update_millis;
+const unsigned long update_interval = 30000; // 30000 = 30 sec 
+bool update_flag = false;
 void run_once(); // main function
 
 #if NARODMON == 1
@@ -85,8 +89,8 @@ void run_once(); // main function
   String POST_string = ""; //query string
 
   bool send_allow_flag = false; // allow http request
-  unsigned long start_millis;  
-  unsigned long current_millis;
+  unsigned long last_send_millis;  
+  unsigned long current_send_millis;
   const unsigned long send_period = 600000; // 600000 = 10 min 
 
 #endif //NARODMON
@@ -200,8 +204,10 @@ void run_once(); // main function
 void setup() {
   Serial.begin(115200);
   delay(3000);
+  last_update_millis = millis();
+  
   #if NARODMON == 1
-    start_millis = millis();
+    last_send_millis = millis();
   #endif // NARODMON
   
   #if DEBUG == 1
@@ -216,8 +222,12 @@ void setup() {
     pinMode(INDICATORLED, OUTPUT);
     digitalWrite(INDICATORLED, LOW);
   #endif // USELED
-  
+  delay(100);
+  #if DEBUG == 1
+    Serial.println("dummy text dummy text dummy text dummy text dummy text dummy text dummy text dummy text dummy text ");
+  #endif //DEBUG
   delay(500);
+
   #if OLED == 1 
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64) //must be 0x3C <-----------------------------------------
     display.display();
@@ -232,7 +242,7 @@ void setup() {
   #endif //OLED
   
   #if DEBUG == 1
-    Serial.println("sketch: narodmon_esp_station.ino");
+    Serial.println("\r\n\nsketch: narodmon_esp_station.ino");
     Serial.println("\n=================== CONFIG ==================\n");
   #endif //DEBUG
   
@@ -247,6 +257,7 @@ void setup() {
     #endif //OLED
     
     #if DEBUG == 1
+      Serial.print("Narodmon IP: "); Serial.println(host);
       Serial.print("Connecting to: "); Serial.print(ssid);
     #endif //DEBUG
     
@@ -263,7 +274,7 @@ void setup() {
    // while (WiFi.status() != WL_CONNECTED) 
     while(WiFiMulti.run() != WL_CONNECTED) 
     {
-      delay(300);
+      delay(500);
       
       #if DEBUG == 1
         Serial.print(".");
@@ -280,7 +291,6 @@ void setup() {
     }
     
     #if USELED == 1
-      delay(100);
       led_blink(1000, 1);
     #endif //USELED
     
@@ -400,38 +410,74 @@ run_once();
 }
 
 void loop() {
+  
   #if USE_SLEEP_MODE != 1
-    delay(10000); // update sensors every 10 sec
-    poll_sensors();
     
-    #if USELED == 1 
-      led_blink(1000, 2); 
-    #endif // USELED
+    //delay(10000); // update sensors every 10 sec
+    current_update_millis = millis();
+    if(current_update_millis-last_update_millis>=update_interval)
+    {
+      last_update_millis = current_update_millis;
+      update_flag = true;
+    }
+
+    if(update_flag == true) 
+    {
+      /*
+        typedef enum {
+      WL_NO_SHIELD        = 255,   // for compatibility with WiFi Shield library
+      WL_IDLE_STATUS      = 0,
+      WL_NO_SSID_AVAIL    = 1,
+      WL_SCAN_COMPLETED   = 2,
+      WL_CONNECTED        = 3,
+      WL_CONNECT_FAILED   = 4,
+      WL_CONNECTION_LOST  = 5,
+      WL_DISCONNECTED     = 6
+      } wl_status_t;
+      */
+      #if DEBUG == 1
+        Serial.println("\r\n\n-->start");
+        Serial.print("wifi status: "); Serial.println(WiFi.status());
+      #endif //DEBUG
+      
+      read_sensors();
+  
+      #if USELED == 1 
+        led_blink(1000, 2); 
+      #endif // USELED
+      
+      #if OLED ==1
+        display_draw();
+      #endif //oled
     
-    #if OLED ==1
-      display_draw();
-    #endif //oled
-    
-    #if NARODMON == 1 
-      current_millis = millis();
-      if(current_millis-start_millis>=send_period)
+    #if NARODMON == 1
+      current_send_millis = millis();
+      
+      if(current_send_millis-last_send_millis>=send_period)
       {
-        start_millis = current_millis;
+        last_send_millis = current_send_millis;
         send_allow_flag = true;
       }
       else 
       {
-      #if DEBUG == 1
-        long send_delay = round((send_period - (current_millis-start_millis))/1000);
-        Serial.print("Next delivery in ");Serial.print(send_delay);Serial.println(" seconds");
-      #endif //DEBUG
+        #if DEBUG == 1
+          Serial.print("Next delivery in ");Serial.print(round((send_period - (current_send_millis-last_send_millis))/1000));Serial.println(" seconds");
+        #endif //DEBUG
       }
+      
       if(send_allow_flag == true) 
       {
         send_message(POST_string);
       }
     #endif //narodmon
+    
+    update_flag = false;
+    #if DEBUG == 1
+      Serial.println("-->end");
+    #endif //DEBUG
+  }
   #endif // !USE_SLEEP_MODE
+  
 }
 
 String float_to_sting(float src){
@@ -500,19 +546,22 @@ String float_to_sting(float src){
 #if NARODMON == 1
 void send_message(String data)
 {
-  WiFiClient client;
-  if (!client.connect(host, httpPort)){
-      Serial.println("connection failed");
-      Serial.println("wait 5 sec...");
-      delay(5000);
-      return;
-  }
+
 
   #if DEBUG == 1
     Serial.println("=============== send msg start ==============");    
   #endif // DEBUG
   #if WIFI == 1
   if(WiFi.status() == WL_CONNECTED) {
+    
+    WiFiClient client;
+    if (!client.connect(host, httpPort)){
+        Serial.println("connection failed");
+        Serial.println("wait 5 sec...");
+        delay(5000);
+        return;
+    }
+      
     #if DEBUG == 1
       Serial.println("-------------- wifi connected --------------");    
     #endif // DEBUG
@@ -561,8 +610,22 @@ void send_message(String data)
     delay(5000);
   }
   else{
+    delay(3000);
     #if DEBUG == 1
-      Serial.println("------------- wifi not connected ------------");    
+      Serial.println("------------- wifi not connected ------------");   
+      Serial.println("----------------- rebooting -----------------");   
+      //ESP.reset();
+      //ESP.restart();
+      Serial.print("Off To Sleep for "); Serial.print(10); Serial.println(" sec");
+      delay(100);
+    #endif // DEBUG
+    led_blink(100, 10);
+    ESP.deepSleep(10000, WAKE_RF_DEFAULT); //10 sec
+    
+    #if DEBUG == 1 
+      Serial.println("Why im not sleeping?");
+
+    
     #endif // DEBUG
   }
   #endif //wifi
@@ -580,7 +643,7 @@ void send_message(String data)
 // ###########################
 
 void run_once() {
-  poll_sensors();
+  read_sensors();
  
   #if OLED ==1
     display_draw();
@@ -604,7 +667,7 @@ void run_once() {
 } //run_once
 
 
-void poll_sensors(){
+void read_sensors(){
 
   #if NARODMON == 1
     POST_string = "ID=";
@@ -670,6 +733,11 @@ void poll_sensors(){
       POST_string += "&"; POST_string += DEV_ID;
       POST_string += "05="; POST_string += (String)lux;
     #endif //NARODMON 
+    #if DEBUG == 1 
+      Serial.print("BH1750: \t");
+      Serial.print(lux);
+      Serial.println(" lux");
+    #endif // DEBUG
   #endif //bh1750
   
   #if DHT_EXIST == 1
@@ -758,8 +826,8 @@ void poll_sensors(){
       Serial.print("Compiled string: ");   Serial.println(POST_string);
     #endif // DEBUG
   #endif  //narodmon 
-
-} //poll_sensors
+  update_flag = false;
+} //read_sensors
 
 
  #if OLED ==1
