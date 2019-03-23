@@ -75,7 +75,7 @@ static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
 
 String float_to_sting(float); //convert float value to a proper string
 void read_sensors(); //read sensors, collect data to query string
-unsigned long last_update_millis;  
+unsigned long last_update_millis;
 unsigned long current_update_millis;
 const unsigned long update_interval = 30000; // 30000 = 30 sec 
 bool update_flag = false;
@@ -242,7 +242,7 @@ void setup() {
   #endif //OLED
   
   #if DEBUG == 1
-    Serial.println("\r\n\nsketch: narodmon_esp_station.ino");
+    Serial.print("\r\n\nSketch: "); Serial.println(__FILE__);
     Serial.println("\n=================== CONFIG ==================\n");
   #endif //DEBUG
   
@@ -437,45 +437,45 @@ void loop() {
       */
       #if DEBUG == 1
         Serial.println("\r\n\n-->start");
-        Serial.print("wifi status: "); Serial.println(WiFi.status());
+        Serial.print("WIFI status code: "); Serial.println(WiFi.status());
       #endif //DEBUG
       
       read_sensors();
   
       #if USELED == 1 
-        led_blink(1000, 2); 
+        led_blink(500, 2); 
       #endif // USELED
       
       #if OLED ==1
         display_draw();
       #endif //oled
     
-    #if NARODMON == 1
-      current_send_millis = millis();
+      #if NARODMON == 1
+        current_send_millis = millis();
+        
+        if(current_send_millis-last_send_millis>=send_period)
+        {
+          last_send_millis = current_send_millis;
+          send_allow_flag = true;
+        }
+        else 
+        {
+          #if DEBUG == 1
+            Serial.print("Next delivery in ");Serial.print(round((send_period - (current_send_millis-last_send_millis))/1000));Serial.println(" seconds");
+          #endif //DEBUG
+        }
       
-      if(current_send_millis-last_send_millis>=send_period)
-      {
-        last_send_millis = current_send_millis;
-        send_allow_flag = true;
-      }
-      else 
-      {
-        #if DEBUG == 1
-          Serial.print("Next delivery in ");Serial.print(round((send_period - (current_send_millis-last_send_millis))/1000));Serial.println(" seconds");
-        #endif //DEBUG
-      }
-      
-      if(send_allow_flag == true) 
-      {
-        send_message(POST_string);
-      }
-    #endif //narodmon
+        if(send_allow_flag == true) 
+        {
+          send_message(POST_string);
+        }
+      #endif //narodmon
     
-    update_flag = false;
-    #if DEBUG == 1
-      Serial.println("-->end");
-    #endif //DEBUG
-  }
+      update_flag = false;
+      #if DEBUG == 1
+        Serial.println("-->end");
+      #endif //DEBUG
+    }
   #endif // !USE_SLEEP_MODE
   
 }
@@ -549,21 +549,24 @@ void send_message(String data)
 
 
   #if DEBUG == 1
-    Serial.println("=============== send msg start ==============");    
+    Serial.println("\r\n\n=============== send msg start ==============");    
   #endif // DEBUG
   #if WIFI == 1
   if(WiFi.status() == WL_CONNECTED) {
     
     WiFiClient client;
     if (!client.connect(host, httpPort)){
-        Serial.println("connection failed");
-        Serial.println("wait 5 sec...");
-        delay(5000);
-        return;
+      #if DEBUG == 1
+        Serial.println("-------------- host unreachable -------------");   
+        Serial.println("               reboot in 10 sec              ");
+        Serial.println("---------------------------------------------");    
+      #endif // DEBUG
+    led_blink(100, 10);
+    ESP.deepSleep(10000, WAKE_RF_DEFAULT); //sleep 10 sec
     }
       
     #if DEBUG == 1
-      Serial.println("-------------- wifi connected --------------");    
+      Serial.println("WIFI: Connected\n");    
     #endif // DEBUG
     
     client.print(String("POST http://narodmon.ru/post.php HTTP/1.0\r\nHost: narodmon.ru\r\nContent-Type: application/x-www-form-urlencoded\r\n"));
@@ -613,19 +616,14 @@ void send_message(String data)
     delay(3000);
     #if DEBUG == 1
       Serial.println("------------- wifi not connected ------------");   
-      Serial.println("----------------- rebooting -----------------");   
-      //ESP.reset();
-      //ESP.restart();
-      Serial.print("Off To Sleep for "); Serial.print(10); Serial.println(" sec");
-      delay(100);
+      Serial.println("               reboot in 10 sec              ");
+      Serial.println("---------------------------------------------");    
     #endif // DEBUG
     led_blink(100, 10);
-    ESP.deepSleep(10000, WAKE_RF_DEFAULT); //10 sec
+    ESP.deepSleep(10000, WAKE_RF_DEFAULT); //sleep 10 sec
     
     #if DEBUG == 1 
       Serial.println("Why im not sleeping?");
-
-    
     #endif // DEBUG
   }
   #endif //wifi
