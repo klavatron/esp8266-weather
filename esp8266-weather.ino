@@ -34,26 +34,32 @@ static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
 //static const uint8_t D9   = 3;
 //static const uint8_t D10  = 1;
 
-#define SERIAL_SPEED 115200
-#define WIRESDA 14 //esp8266 sda
-#define WIRESCL 12 //esp8266 scl
-
 #define DEBUG 1   // serial logging enabled
+#if DEBUG == 1
+    #define SERIAL_SPEED 115200
+#endif
+
 #define WIFI 1 // wifi connection enabled
 #define OLED 0    // i2c oled screen enabled
 #define NARODMON 1  // sending data to narodmon enabled
-#define BMP_EXIST 1  // bmp075 presure sensor enabled
-#define BH1750_EXIST 1 // bh1750 light sensor enabled
-#define HTU21_EXIST 1  // HTU21 humidity sensor enabled
+#define BMP_EXIST 1  // i2c bmp075 presure sensor enabled
+#define BH1750_EXIST 1 // i2c bh1750 light sensor enabled
+#define HTU21_EXIST 1  // i2c HTU21 humidity sensor enabled
 
+//if I2C used
+#if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1)
+    #define WIRESDA 14 //esp8266 sda
+    #define WIRESCL 12 //esp8266 scl
+#endif
+//DHT11 is pure quality sensor, don't use it
 #define DHT_EXIST 0   // dht11 sensor enabled
 #if DHT_EXIST == 1
     #define DHT11_SENSOR_PIN A0; 
 #endif //DHT_EXIST
 
-#define DALLAS_EXIST 0  // ds18b20 sensors enabled
+#define DALLAS_EXIST 0  // onewire ds18b20 sensors enabled
 #if DALLAS_EXIST == 1
-    #define ONE_WIRE_BUS D0 
+    #define ONE_WIRE_BUS 2 
 #endif //DALLAS_EXIST
 
 #define MQ4_EXIST 0 // MQ4 methan sensor enabled
@@ -205,9 +211,12 @@ void setup()
     #if NARODMON == 1
         last_send_millis = millis();
     #endif //NARODMON
-
-    Wire.begin(WIRESDA, WIRESCL);
-    delay(100);
+    
+    //if I2C used
+    #if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1)
+        Wire.begin(WIRESDA, WIRESCL);
+        delay(100);
+    #endif
 
     #if USELED == 1 
         pinMode(INDICATORLED, OUTPUT);
@@ -311,16 +320,11 @@ void setup()
             {
                 #if DEBUG == 1
                     Serial.print("Found device with address: "); 
-                    //printAddress(tempDeviceAddress); 
+                    printAddress(tempDeviceAddress); 
                     Serial.println();
                 #endif //DEBUG
                 // set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
                 dallas_sensors.setResolution(tempDeviceAddress, TEMPERATURE_PRECISION);
-
-                #if DEBUG == 1
-                    Serial.print("Resolution actually set to: ");
-                    Serial.println(dallas_sensors.getResolution(tempDeviceAddress), DEC);
-                #endif //DEBUG
             }
             else
             {
@@ -331,9 +335,6 @@ void setup()
             }
         }
 
-        #if DEBUG == 1
-            Serial.println("Dallas init");
-        #endif //DEBUG
     #endif //DALLAS_EXIST
 
     #if BMP_EXIST == 1
@@ -567,10 +568,6 @@ void send_message(String data)
         delay(50);
         while(client.available())
         {
-            #if DEBUG == 1
-                Serial.println("Client available");
-            #endif //DEBUG
-
             String line = client.readStringUntil('\r');
 
             #if DEBUG == 1
@@ -659,18 +656,12 @@ void read_sensors()
     #endif //NARODMON
 
     #if DALLAS_EXIST == 1
-        #if DEBUG == 1
-            Serial.print("Requesting temperatures...\t");  
-        #endif //DEBUG
-        sensors.requestTemperatures();  
-        #if DEBUG == 1
-            Serial.println("DONE");
-        #endif //DEBUG
+        dallas_sensors.requestTemperatures();  
 
         #if NARODMON == 1
             for(int i=0;i<countOfDallasTerm; i++)
             {
-                if(sensors.getAddress(tempDeviceAddress, i))
+                if(dallas_sensors.getAddress(tempDeviceAddress, i))
                 {
                     POST_string +=aGetTempAddress(tempDeviceAddress);
                     POST_string +=aGetTemperature(tempDeviceAddress);
