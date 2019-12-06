@@ -3,7 +3,7 @@
 *  Copyright <klavatron> 2015-2019
 *
 *  ***DRAFT***
-*           ESP8266 BoardVersion 2.4.0 https://github.com/esp8266/Arduino
+*           ESP8266 BoardVersion 2.6.2 https://github.com/esp8266/Arduino
 *  Sensors:
 *           bmp180  i2c   Adafruit BMP085 Unified 1.0.0 https://github.com/adafruit/Adafruit_BMP085_Unified
 *           BH1750  i2c   Christopher Laws, March, 2013 https://github.com/claws/BH1750.git
@@ -13,15 +13,18 @@
 *           MQ4 (trigger)
 *
 *  You need to change:
-*                      String DEV_ID = "ABCDEFABCDEF"- hw address of device
+            Remove .example for narodmon.cfg.h.example and wifi.cfg.h.example
 *                      const char* ssid = "SSID" - name of wifi AP
 *                      const char* password = "PASSWORD" - password of wifi AP
+*                      String DEV_ID = "ABCDEFABCDEF"- hw address of device
 *                      const char* host = "185.245.187.136" - ip of narodmon.ru
 *
 * If you don't use oled screen or debug logging, switch USE_SLEEP_MODE to 1 for powersaving.
 */
 
 static const uint8_t INDICATORLED   = 5;  // led indicator
+static const uint8_t POWERPIN   = 4;  // mosfet for powering sensors
+
 static const uint8_t D0   = 16;
 //static const uint8_t D1   = 5;
 //static const uint8_t D2   = 4;
@@ -40,6 +43,7 @@ static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
 #endif
 
 #define WIFI 1 // wifi connection enabled
+#define MOSFETSENSORS 1 // using mosfet to powering sensors
 #define OLED 0    // i2c oled screen enabled
 #define NARODMON 1  // sending data to narodmon enabled
 #define BMP_EXIST 1  // i2c bmp075 presure sensor enabled
@@ -87,28 +91,19 @@ bool update_flag = false;
 void run_once(); // main function
 
 #if NARODMON == 1
-    const char* host     = "185.245.187.136"; // narodmon server ip
-    const int httpPort   = 80; // narodmon server port
-
-    String DEV_ID = "ABCDEFABCDEF"; //replace with random device identificator (mac-address)
+  #include "narodmon.cfg.h"
     String POST_string = ""; //query string
-
     bool send_allow_flag = false; // allow http request
     unsigned long last_send_millis;
     unsigned long current_send_millis;
-    const unsigned long send_period = 600000; // 600000 = 10 min
 #endif //NARODMON
 
 #if WIFI == 1
     #include <ESP8266WiFi.h>
-    #include <ESP8266WiFiMulti.h>
+    #include "wifi.cfg.h"
     extern "C" {
         #include <user_interface.h>
     }
-    ESP8266WiFiMulti WiFiMulti;
-    // Replace with your network credentials
-    const char* ssid     = "SSID"; // WLAN ssid
-    const char* password = "PASSWORD"; // WLAN password
 #endif //WIFI
 
 #if DALLAS_EXIST == 1
@@ -205,7 +200,14 @@ void setup()
         Serial.begin(115200);
     #endif //DEBUG
 
+    #if MOSFETSENSORS == 1
+    //if using mosfet
+      pinMode(POWERPIN, OUTPUT);
+      digitalWrite(POWERPIN, HIGH);
+    #endif //MOSFETSENSORS
+
     delay(1000);
+
     last_update_millis = millis();
 
     #if NARODMON == 1
@@ -238,7 +240,7 @@ void setup()
     #if DEBUG == 1
         Serial.print("\r\n\nSketch: "); Serial.println(__FILE__);
         Serial.println("Compiled: " __DATE__ ", " __TIME__ );
-        Serial.println("\n=================== CONFIG ==================\n");
+        Serial.println("\n=================== CONFIG ==================");
     #endif //DEBUG
 
     #if WIFI == 1
@@ -252,18 +254,18 @@ void setup()
         #endif //OLED
 
         #if DEBUG == 1
-            Serial.print("Narodmon IP: "); Serial.println(host);
-            Serial.print("Connecting to: "); Serial.print(ssid);
+            Serial.print("Narodmon IP:        "); Serial.println(host);
+            Serial.print("Connecting to:      "); Serial.print(ssid);  Serial.print(" ");
         #endif //DEBUG
 
         WiFi.mode( WIFI_STA );
-        WiFiMulti.addAP(ssid, password);
+        WiFi.begin(ssid, password);
 
         #if OLED ==1
             display.setCursor(0,32);
         #endif //OLED
 
-        while(WiFiMulti.run() != WL_CONNECTED)
+        while(WiFi.status() != WL_CONNECTED)
         {
             delay(1000);
 
@@ -277,7 +279,7 @@ void setup()
             #endif //OLED
 
             #if USELED == 1
-            led_blink(150, 1);
+            led_blink(50, 1);
             #endif //USELED
         }
 
@@ -287,7 +289,7 @@ void setup()
 
         #if DEBUG == 1
             Serial.println(" OK");
-            Serial.print("IP address: ");Serial.println(WiFi.localIP());
+            Serial.print("IP address:         ");Serial.println(WiFi.localIP());
         #endif //DEBUG
 
         #if OLED == 1
@@ -348,7 +350,7 @@ void setup()
         else
         {
             #if DEBUG == 1
-                Serial.println("BMP init.");
+                Serial.println("BMP                 init");
             #endif //DEBUG
         }
         getBMPsensor();
@@ -358,7 +360,7 @@ void setup()
         delay(50);
         lightMeter.begin(BH1750_ONE_TIME_HIGH_RES_MODE_2);
         #if DEBUG == 1
-            Serial.println("BH1750 init");
+            Serial.println("BH1750              init");
         #endif //DEBUG
     #endif //BH1750_EXIST
 
@@ -366,7 +368,7 @@ void setup()
         delay(50);
         pinMode(METHAN_SENSOR_PIN, INPUT);
         #if DEBUG == 1
-            Serial.println("MQ4 init");
+            Serial.println("MQ4                 init");
         #endif //DEBUG
     #endif //MQ4_EXIST
 
@@ -387,7 +389,7 @@ void setup()
         #endif
 
         #if DEBUG == 1
-            Serial.println("Si7021 init");
+            Serial.println("Si7021              init");
         #endif //DEBUG
     #endif //HTU21_EXIST
 
@@ -427,10 +429,11 @@ void loop()
         Serial.print("WIFI status code: "); Serial.println(WiFi.status());
         #endif //DEBUG
 
+
         read_sensors();
 
         #if USELED == 1
-        led_blink(500, 1);
+        led_blink(200, 3);
         #endif //USELED
 
         #if OLED ==1
@@ -501,14 +504,17 @@ void goto_sleep()
     #if DEBUG == 1
         Serial.println("Do nothing for 10 seconds");  // This makes it easier to re-flash the chip later.
     #endif //DEBUG
-
     delay(10000);
 
     #if DEBUG == 1
         Serial.print("Off To Sleep for "); Serial.print(round(SLEEPING_TIME/60e6)); Serial.println(" min");
-        delay(100);
     #endif //DEBUG
-    led_blink(100, 5);
+
+    #if MOSFETSENSORS == 1
+      digitalWrite(POWERPIN, LOW);
+    #endif //MOSFETSENSORS
+
+    led_blink(400, 3);
     ESP.deepSleep(SLEEPING_TIME, WAKE_RF_DEFAULT); //20 sec
 
     #if DEBUG == 1
@@ -534,7 +540,7 @@ void led_blink(int duration, int count)
 void send_message(String data)
 {
     #if DEBUG == 1
-        Serial.println("\r\n\n=============== send msg start ==============");
+        Serial.println("=============== send msg start ==============");
     #endif //DEBUG
 
     #if WIFI == 1
@@ -548,12 +554,12 @@ void send_message(String data)
                 Serial.println("               reboot in 10 sec              ");
                 Serial.println("---------------------------------------------");
             #endif //DEBUG
-            led_blink(100, 5);
+            led_blink(50, 5);
             ESP.deepSleep(10000, WAKE_RF_DEFAULT); //sleep 10 sec
         }
 
         #if DEBUG == 1
-            Serial.println("WIFI: Connected\n");
+            Serial.println("WIFI:               Connected");
         #endif //DEBUG
 
         client.print(String("POST http://narodmon.ru/post.php HTTP/1.0\r\nHost: narodmon.ru\r\nContent-Type: application/x-www-form-urlencoded\r\n"));
@@ -562,7 +568,7 @@ void send_message(String data)
         #if DEBUG == 1
             Serial.println(String("POST http://narodmon.ru/post.php HTTP/1.0\r\nHost: narodmon.ru\r\nContent-Type: application/x-www-form-urlencoded\r\n"));
             Serial.println(String("Content-Length: " + String(data.length()) + "\r\n\r\n" + data + "\r\n\r\n"));
-            Serial.println("server reply =====>\r\n");
+            Serial.println("Server reply begin =====>");
         #endif //DEBUG
 
         delay(50);
@@ -585,7 +591,7 @@ void send_message(String data)
             delay(100);
         }
         #if DEBUG == 1
-            Serial.println("\r\nserver reply <===== "); Serial.println();
+            Serial.println("Server reply end <===== ");
             Serial.println("closing connection");
         #endif //DEBUG
 
@@ -602,7 +608,7 @@ void send_message(String data)
             Serial.println("               reboot in 10 sec              ");
             Serial.println("---------------------------------------------");
         #endif // DEBUG
-        led_blink(100, 10);
+        led_blink(100, 5);
         ESP.deepSleep(10000, WAKE_RF_DEFAULT); //sleep 10 sec
 
         #if DEBUG == 1
@@ -611,10 +617,6 @@ void send_message(String data)
     }
     #endif //WIFI
     send_allow_flag = false;
-
-    #if USELED == 1
-        led_blink(100, 2);
-    #endif //USELED
 
     #if DEBUG == 1
         Serial.println("=============== send msg end ==============");
@@ -625,7 +627,15 @@ void send_message(String data)
 
 void run_once()
 {
+    #if DEBUG == 1
+       Serial.println("run_once:           Going to check sensors");
+    #endif //DEBUG
+
     read_sensors();
+
+    #if DEBUG == 1
+       Serial.println("run_once:           Sensors checked");
+    #endif //DEBUG
 
     #if OLED ==1
         display_draw();
@@ -636,7 +646,7 @@ void run_once()
     #endif // USE_SLEEP_MODE
 
     #if USELED == 1
-        led_blink(300, 3);
+        led_blink(100, 3);
     #endif // USELED
 
     #if NARODMON == 1
@@ -650,12 +660,21 @@ void run_once()
 
 void read_sensors()
 {
+   #if DEBUG == 1
+       Serial.println("read_sensors:       Going to collect data");
+    #endif //DEBUG
     #if NARODMON == 1
         POST_string = "ID=";
         POST_string += DEV_ID;
     #endif //NARODMON
 
+
+
     #if DALLAS_EXIST == 1
+       #if DEBUG == 1
+          Serial.println("read_sensors: Dallas");
+       #endif //DEBUG
+       
         dallas_sensors.requestTemperatures();
 
         #if NARODMON == 1
@@ -670,7 +689,13 @@ void read_sensors()
         #endif //NARODMON
     #endif //DALLAS_EXIST
 
+
+
     #if BMP_EXIST == 1
+       #if DEBUG == 1
+          Serial.println("read_sensors:       BMP180");
+       #endif //DEBUG
+       
         sensors_event_t event;
         presureSensor.getEvent(&event);
         if (event.pressure)
@@ -679,7 +704,7 @@ void read_sensors()
             presure = event.pressure;
 
             #if DEBUG == 1
-                Serial.print("bmp180.Pressure: \t");   Serial.print(presure);   Serial.println(" hPa");
+                Serial.print("bmp180 pressure     ");   Serial.print(presure);   Serial.println(" hPa");
             #endif //DEBUG
 
             #if NARODMON == 1
@@ -691,7 +716,7 @@ void read_sensors()
             presureSensor.getTemperature(&temperature);
 
             #if DEBUG == 1
-                Serial.print("bmp180.Temperature: \t");  Serial.print(temperature);  Serial.println(" C");
+                Serial.print("bmp180 temperature  ");  Serial.print(temperature);  Serial.println(" C");
             #endif // DEBUG
 
             #if NARODMON == 1
@@ -706,6 +731,11 @@ void read_sensors()
     #endif //BMP_EXIST
 
     #if BH1750_EXIST == 1
+
+           #if DEBUG == 1
+               Serial.println("read_sensors:       BH1750");
+           #endif //DEBUG
+
         lightMeter.begin(BH1750_ONE_TIME_HIGH_RES_MODE_2);
         uint16_t lux = lightMeter.readLightLevel(); //54000
         #if NARODMON == 1
@@ -713,13 +743,19 @@ void read_sensors()
             POST_string += "05="; POST_string += (String)lux;
         #endif //NARODMON
         #if DEBUG == 1
-            Serial.print("BH1750: \t");
+            Serial.print("BH1750              ");
             Serial.print(lux);
             Serial.println(" lux");
         #endif //DEBUG
     #endif //BH1750_EXIST
 
+
+
     #if DHT_EXIST == 1
+        #if DEBUG == 1
+           Serial.println("read_sensors: DHT");
+        #endif //DEBUG
+        
         dht11.update();
         float dht11_t=0.0;
         float dht11_h=0.0;
@@ -770,6 +806,10 @@ void read_sensors()
     #endif //DHT_EXIST
 
     #if MQ4_EXIST == 1
+       #if DEBUG == 1
+          Serial.println("read_sensors: MQ4");
+       #endif //DEBUG
+       
         int d_sensor_val = digitalRead(METHAN_SENSOR_PIN);
 
         #if NARODMON == 1
@@ -778,20 +818,23 @@ void read_sensors()
         #endif //NARODMON
     #endif //MQ4_EXIST
 
-
     #if HTU21_EXIST == 1
+       #if DEBUG == 1
+          Serial.println("read_sensors:       HTU21");
+       #endif //DEBUG
+       
         float htu21_h = 0.0;
         float htu21_t = 0.0;
         htu21_h = myHTU21D.readHumidity();
         htu21_t = myHTU21D.readTemperature();
 
         #if DEBUG == 1
-            Serial.print("HTU humidity: \t");
+            Serial.print("HTU humidity        ");
             Serial.print(htu21_h);
-            Serial.println(" +-2%RH");
-            Serial.print("HTU temp: \t");
+            Serial.println(" +- 2% RH");
+            Serial.print("HTU temp            ");
             Serial.print(htu21_t);
-            Serial.println(" +-0.5deg.C");
+            Serial.println(" +- 0.5 deg.C");
         #endif //DEBUG
 
         #if NARODMON == 1
@@ -853,7 +896,7 @@ void read_sensors()
             resetInfo = ESP.getResetInfoPtr();
 
             #if DEBUG == 1
-                Serial.print("Wake code: ");Serial.print(resetInfo->reason);Serial.print("- ");
+                Serial.print("Wake code:          ");Serial.print(resetInfo->reason);Serial.print("- ");
             #endif //DEBUG
 
             //switch reset reason
@@ -864,7 +907,7 @@ void read_sensors()
                         Serial.println("Normal startup");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 1);
+                        led_blink(500, 2);
                     #endif //USELED
                     break;
 
@@ -873,7 +916,7 @@ void read_sensors()
                         Serial.println("Hardware watch dog reset");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 1);
+                        led_blink(500, 4);
                     #endif //USELED
                     break;
 
@@ -882,7 +925,7 @@ void read_sensors()
                         Serial.println("Exception reset, GPIO status won’t change");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 2);
+                        led_blink(500, 5);
                     #endif //USELED
                     break;
 
@@ -891,7 +934,7 @@ void read_sensors()
                         Serial.println("Software watch dog reset, GPIO status won’t change");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 4);
+                        led_blink(500, 5);
                     #endif //USELED
                     break;
 
@@ -900,7 +943,7 @@ void read_sensors()
                         Serial.println("Software restart ,system_restart , GPIO status won’t change");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 4);
+                        led_blink(500, 5);
                     #endif //USELED
                     break;
 
@@ -909,10 +952,10 @@ void read_sensors()
                         Serial.println("Wake up from deep-sleep");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 5);
+                        led_blink(500, 3);
                     #endif //USELED
                     #if DEBUG == 1
-                        Serial.println("Preparing request");
+                        Serial.println("\nPreparing request");
                     #endif //DEBUG
                     #if NARODMON == 1
                         send_message(POST_string);
@@ -924,7 +967,7 @@ void read_sensors()
                         Serial.println("External system reset");
                     #endif //DEBUG
                     #if USELED == 1
-                        led_blink(500, 6);
+                        led_blink(500, 1);
                     #endif //USELED
                     break;
             }

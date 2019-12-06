@@ -1,0 +1,4 @@
+const char* host     = "185.245.187.136"; // narodmon server ip
+const int httpPort   = 80; // narodmon server port
+String DEV_ID = "XXxxXXxxXXxx"; //replace with random device identificator (mac-address)
+const unsigned long send_period = 600000; // 600000 = 10 min 
