@@ -22,20 +22,22 @@
 * If you don't use oled screen or debug logging, switch USE_SLEEP_MODE to 1 for powersaving.
 */
 
-static const uint8_t INDICATORLED   = 5;  // led indicator
-static const uint8_t POWERPIN   = 4;  // mosfet for powering sensors
 
-static const uint8_t D0   = 16;
-//static const uint8_t D1   = 5;
-//static const uint8_t D2   = 4;
-//static const uint8_t D3   = 0;  // SDA
-//static const uint8_t D4   = 2;  // SCL
-static const uint8_t D5   = 14; // SDA  <---------ESP8266--------
-static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
-//static const uint8_t D7   = 13;
-//static const uint8_t D8   = 15;
-//static const uint8_t D9   = 3;
-//static const uint8_t D10  = 1;
+  static const uint8_t INDICATORLED   = 5;  // led indicator
+  static const uint8_t POWERPIN   = 4;  // mosfet for powering sensors
+  
+  static const uint8_t D0   = 16;
+  //static const uint8_t D1   = 5;
+  //static const uint8_t D2   = 4;
+  //static const uint8_t D3   = 0;  // SDA
+  //static const uint8_t D4   = 2;  // SCL
+  static const uint8_t D5   = 14; // SDA  <---------ESP8266--------
+  static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
+  //static const uint8_t D7   = 13;
+  //static const uint8_t D8   = 15;
+  //static const uint8_t D9   = 3;
+  //static const uint8_t D10  = 1;
+
 
 #define DEBUG 1   // serial logging enabled
 #if DEBUG == 1
@@ -61,9 +63,9 @@ static const uint8_t D6   = 12; // SCL  <---------ESP8266--------
     #define DHT11_SENSOR_PIN A0;
 #endif //DHT_EXIST
 
-#define DALLAS_EXIST 0  // onewire ds18b20 sensors enabled
+#define DALLAS_EXIST 1  // onewire ds18b20 sensors enabled
 #if DALLAS_EXIST == 1
-    #define ONE_WIRE_BUS 2
+    #define ONE_WIRE_BUS 13
 #endif //DALLAS_EXIST
 
 #define MQ4_EXIST 0 // MQ4 methan sensor enabled
@@ -198,12 +200,16 @@ void setup()
 {
     #if DEBUG == 1
         Serial.begin(115200);
+        Serial.print("\r\n\nSketch: "); Serial.println(__FILE__);
+        Serial.println("Compiled: " __DATE__ ", " __TIME__ );
+        Serial.println("\n=================== CONFIG ==================");
     #endif //DEBUG
 
     #if MOSFETSENSORS == 1
     //if using mosfet
       pinMode(POWERPIN, OUTPUT);
       digitalWrite(POWERPIN, HIGH);
+      Serial.println("MOSFET init");
     #endif //MOSFETSENSORS
 
     delay(1000);
@@ -237,11 +243,6 @@ void setup()
         delay(500);
     #endif //OLED
 
-    #if DEBUG == 1
-        Serial.print("\r\n\nSketch: "); Serial.println(__FILE__);
-        Serial.println("Compiled: " __DATE__ ", " __TIME__ );
-        Serial.println("\n=================== CONFIG ==================");
-    #endif //DEBUG
 
     #if WIFI == 1
         #if OLED == 1
@@ -254,7 +255,9 @@ void setup()
         #endif //OLED
 
         #if DEBUG == 1
-            Serial.print("Narodmon IP:        "); Serial.println(host);
+            #if NARODMON == 1
+                Serial.print("Narodmon IP:        "); Serial.println(host);
+            #endif //NARODMON
             Serial.print("Connecting to:      "); Serial.print(ssid);  Serial.print(" ");
         #endif //DEBUG
 
@@ -264,7 +267,7 @@ void setup()
         #if OLED ==1
             display.setCursor(0,32);
         #endif //OLED
-
+  
         while(WiFi.status() != WL_CONNECTED)
         {
             delay(1000);
@@ -672,7 +675,7 @@ void read_sensors()
 
     #if DALLAS_EXIST == 1
        #if DEBUG == 1
-          Serial.println("read_sensors: Dallas");
+          Serial.println("read_sensors:       Dallas");
        #endif //DEBUG
        
         dallas_sensors.requestTemperatures();
@@ -682,6 +685,9 @@ void read_sensors()
             {
                 if(dallas_sensors.getAddress(tempDeviceAddress, i))
                 {
+                  #if DEBUG == 1
+                    Serial.print(aGetTempAddress(tempDeviceAddress)); Serial.print(":  ");  Serial.println(aGetTemperature(tempDeviceAddress));
+                  #endif //DEBUG
                     POST_string +=aGetTempAddress(tempDeviceAddress);
                     POST_string +=aGetTemperature(tempDeviceAddress);
                 }
