@@ -75,11 +75,11 @@ void setup()
           Serial.println("OLED initialization Ok");
         #endif
       }
-
+      
       //display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64) //must be 0x3C <-----------------------------------------
       if(!oled_error)
       {
-        delay(100);
+        delay(300);
         display.clearDisplay();
         display.setTextSize(1);
         display.setTextColor(WHITE);
@@ -856,8 +856,10 @@ void readSensors()
         display.print("P:"); display.print("Err");
       }
       #endif //BMP_EXIST
-    }
-  }
+      display.display();
+      delay(1000);
+    }//(!oled_error)
+  }//displayDraw()
 #endif //OLED
 
 #if USE_SLEEP_MODE == 1
