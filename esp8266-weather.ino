@@ -36,16 +36,16 @@ void setup()
     #endif //DEBUG
 
     #if MOSFETSENSORS == 1 //if using mosfet for powering sensors
-      pinMode(POWERPIN, OUTPUT); 
+      pinMode(POWERPIN, OUTPUT);
       turnSensorsON();
     #endif //MOSFETSENSORS
 
     delay(100);
 
     #if USE_SLEEP_MODE == 0 // if not using deep sleep
-      lastUpdateMillis = millis(); 
+      lastUpdateMillis = millis();
     #endif
-    
+
     #if NARODMON == 1
       lastSendMillis = millis();
     #endif //NARODMON
@@ -63,7 +63,7 @@ void setup()
 
     #if OLED == 1
       // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3D)) { // Address 0x3D for 128x64
+      if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
         #if DEBUG == 1
           Serial.println("OLED initialization error");
         #endif
@@ -77,7 +77,7 @@ void setup()
       }
 
       //display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64) //must be 0x3C <-----------------------------------------
-      if(!oled_error) 
+      if(!oled_error)
       {
         delay(100);
         display.clearDisplay();
@@ -92,7 +92,7 @@ void setup()
 
     #if WIFI == 1
       #if OLED == 1
-      if(!oled_error) 
+      if(!oled_error)
       {
         display.clearDisplay();
         display.setCursor(0,0);
@@ -109,26 +109,26 @@ void setup()
         #endif //NARODMON
         Serial.print("Connecting to:      "); Serial.print(ssid);  Serial.print(" ");
       #endif //DEBUG
-      
-      //WiFi.forceSleepWake(); 
+
+      //WiFi.forceSleepWake();
       WiFi.mode( WIFI_STA );
       delay(100);
 
       #if OLED ==1
-      if(!oled_error) 
+      if(!oled_error)
       {
         display.setCursor(0,32);
       }
       #endif //OLED
-      
-      if (WiFi.SSID()) 
+
+      if (WiFi.SSID())
       {
         #if DEBUG == 1
           Serial.print("x");
         #endif //DEBUG
         WiFi.begin();
       }
-      else 
+      else
       {
         #if DEBUG == 1
           Serial.print("X");
@@ -156,7 +156,7 @@ void setup()
         #endif //DEBUG
 
         #if OLED ==1
-          if(!oled_error) 
+          if(!oled_error)
           {
             display.print(".");
             display.display();
@@ -167,7 +167,7 @@ void setup()
           ledBlink(50, 1);
         #endif //USELED
       }
-      
+
       #if USELED == 1
         ledBlink(100, 2);
       #endif //USELED
@@ -185,7 +185,7 @@ void setup()
       #endif //DEBUG
 
       #if OLED == 1
-      if(!oled_error) 
+      if(!oled_error)
       {
         if(!wifi_error)
         {
@@ -212,10 +212,10 @@ void setup()
       delay(50);
       dallas_sensors.begin();
       countOfDallasTerm = dallas_sensors.getDeviceCount();
-      
+
       if(countOfDallasTerm <= 0)
         dallas_error = true;
-        
+
       #if DEBUG == 1
         Serial.print("Locating dallas devices...\t");
         (countOfDallasTerm>0)?Serial.print(" OK\n"):Serial.print(" FAIL\n");
@@ -263,20 +263,20 @@ void setup()
         #endif //DEBUG
         getBMPsensor();
       }
-      
+
     #endif //BMP_EXIST
 
     #if BH1750_EXIST == 1
       delay(50);
-      
-      if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE_2)) 
+
+      if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE_2))
       {
         #if DEBUG == 1
           Serial.println("BH1750              init");
         #endif //DEBUG
       }
       else {
-        bh1750_error = true;  
+        bh1750_error = true;
         #if DEBUG == 1
           Serial.println("BH1750              fail");
         #endif //DEBUG
@@ -373,7 +373,7 @@ void loop()
         {
           send_message(POST_string);
         }
-        else 
+        else
         {
           #if DEBUG == 1
             Serial.println("Cannt POST to server. WiFi error");
@@ -436,7 +436,7 @@ void goto_sleep()
   ledBlink(400, 3);
   ESP.deepSleep(SLEEPING_TIME, WAKE_RF_DEFAULT); //20 sec
  // ESP.deepSleep(SLEEPING_TIME, WAKE_RF_DISABLED); //20 sec
-  
+
   #if DEBUG == 1
     Serial.println("Why im not sleeping?");
   #endif //DEBUG
@@ -502,7 +502,7 @@ void send_message(String data)
         #endif //DEBUG
 
         #if OLED ==1
-        if(!oled_error) 
+        if(!oled_error)
         {
           display.clearDisplay();
           display.setCursor(0,0);
@@ -681,7 +681,7 @@ void readSensors()
     lux = lightMeter.readLightLevel();
     delay(200);
     lux = lightMeter.readLightLevel();
-    
+
     #if DEBUG == 1
       Serial.print("BH1750             ");
       Serial.print(lux);
@@ -693,7 +693,7 @@ void readSensors()
     #endif //NARODMON
    }
    else
-   {      
+   {
     #if DEBUG == 1
       Serial.println("BH1750  Error");
     #endif //DEBUG
@@ -704,7 +704,7 @@ void readSensors()
     #if DEBUG == 1
      Serial.println("readSensors: DHT");
     #endif //DEBUG
-    
+
     dht11.update();
     float dht11_t=0.0;
     float dht11_h=0.0;
@@ -758,7 +758,7 @@ void readSensors()
    #if DEBUG == 1
     Serial.print("readSensors:       Analog sensor: "); Serial.println(analogRead(ANALOG_PIN));
    #endif //DEBUG
-   
+
     #if NARODMON == 1
       POST_string += "&"; POST_string += narodmonDevId;
       POST_string += "06="; POST_string += floatToString(analogRead(ANALOG_PIN));
@@ -771,10 +771,10 @@ void readSensors()
        #if DEBUG == 1
           Serial.println("readSensors:       HTU21");
        #endif //DEBUG
-  
+
         htu21_h = htu21.readHumidity();
         htu21_t = htu21.readTemperature();
-  
+
         #if DEBUG == 1
           Serial.print("HTU humidity        ");
           Serial.print(htu21_h);
@@ -783,7 +783,7 @@ void readSensors()
           Serial.print(htu21_t);
           Serial.println(" +- 0.5 deg.C");
         #endif //DEBUG
-  
+
         #if NARODMON == 1
           POST_string += "&"; POST_string += narodmonDevId;
           POST_string += "07="; POST_string += floatToString(htu21_h);
@@ -811,7 +811,7 @@ void readSensors()
 #if OLED == 1
   void displayDraw()
   {
-    if(!oled_error) 
+    if(!oled_error)
     {
       display.clearDisplay();
       #if HTU21_EXIST == 1
@@ -830,7 +830,7 @@ void readSensors()
         display.print("T:"); display.print("Err");
       }
       #endif // HTU21_EXIST
-      
+
       #if BH1750_EXIST == 1
         if(!bh1750_error)
         {
@@ -944,7 +944,7 @@ void readSensors()
                 {
                   send_message(POST_string);
                 }
-                else 
+                else
                 {
                   #if DEBUG == 1
                     Serial.println("Cant POST data. Wifi error");
@@ -1018,7 +1018,7 @@ void readSensors()
 
 #endif // DALLAS_EXIST
 
-#if BMP_EXIST == 1 
+#if BMP_EXIST == 1
   void getBMPsensor(void)
   {
     if(!bmp_error)
