@@ -12,7 +12,7 @@
 *           HTU21   i2c   1.0.2 Adafruit HTU21DF Library with modified begin() function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
 *           dth11         Adafruit DHT sensor library 1.3.0 https://github.com/adafruit/DHT-sensor-library
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git
-*           Analog
+*           Analog        You need to use voltage divider to make signal in range 0..1v
 *
 *  You need to change:
             Remove .example for narodmon.cfg.h.example and wifi.cfg.h.example
@@ -62,10 +62,9 @@ void setup()
     #endif //USELED
 
     #if OLED == 1
-      // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
+      if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // bug. always TRUE // Address 0x3D for 128x64, 0x3C for 128x32 and some 128x64 oled displays 
         #if DEBUG == 1
-          Serial.println("OLED initialization error");
+          Serial.println("OLED initialization error"); 
         #endif
         oled_error = true;
       }
@@ -76,7 +75,6 @@ void setup()
         #endif
       }
       
-      //display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64) //must be 0x3C <-----------------------------------------
       if(!oled_error)
       {
         delay(300);
@@ -479,7 +477,7 @@ void send_message(String data)
       }
 
       #if DEBUG == 1
-        Serial.println("WIFI:              Connected\n");
+        Serial.println("WIFI:               Connected\n");
       #endif //DEBUG
 
       client.print(String("POST http://narodmon.ru/post.php HTTP/1.0\r\nHost: narodmon.ru\r\nContent-Type: application/x-www-form-urlencoded\r\n"));
@@ -551,13 +549,13 @@ void send_message(String data)
 void runOnce()
 {
   #if DEBUG == 1
-   Serial.println("runOnce:           Going to check sensors");
+   Serial.println("runOnce:            Going to check sensors");
   #endif //DEBUG
 
   readSensors();
 
   #if DEBUG == 1
-   Serial.println("runOnce:           Sensors checked");
+   Serial.println("runOnce:            Sensors checked");
   #endif //DEBUG
 
   #if OLED ==1
@@ -584,7 +582,7 @@ void runOnce()
 void readSensors()
 {
   #if DEBUG == 1
-   Serial.println("readSensors:       Going to collect data");
+   Serial.println("readSensors:        Going to collect data");
   #endif //DEBUG
   #if NARODMON == 1
     POST_string = "ID=";
@@ -595,7 +593,7 @@ void readSensors()
    if(!dallas_error)
    {
      #if DEBUG == 1
-      Serial.println("readSensors:       Dallas");
+      Serial.println("readSensors:        Dallas");
      #endif //DEBUG
       dallas_sensors.requestTemperatures();
 
@@ -605,7 +603,7 @@ void readSensors()
           if(dallas_sensors.getAddress(tempDeviceAddress, i))
           {
             #if DEBUG == 1
-              Serial.print(aGetTempAddress(tempDeviceAddress)); Serial.print(":  ");  Serial.println(aGetTemperature(tempDeviceAddress));
+              Serial.print(aGetTempAddress(tempDeviceAddress)); Serial.print(":   ");  Serial.println(aGetTemperature(tempDeviceAddress));
             #endif //DEBUG
               POST_string +="&";
               POST_string +=aGetTempAddress(tempDeviceAddress);
@@ -627,7 +625,7 @@ void readSensors()
     if(!bmp_error)
     {
      #if DEBUG == 1
-      Serial.println("readSensors:       BMP180");
+      Serial.println("readSensors:        BMP180");
      #endif //DEBUG
 
       presureSensor.getEvent(&event);
@@ -637,7 +635,7 @@ void readSensors()
         presure = event.pressure;
 
         #if DEBUG == 1
-          Serial.print("bmp180 pressure    ");   Serial.print(presure);   Serial.println(" hPa");
+          Serial.print("bmp180 pressure     ");   Serial.print(presure);   Serial.println(" hPa");
         #endif //DEBUG
 
         #if NARODMON == 1
@@ -649,7 +647,7 @@ void readSensors()
         presureSensor.getTemperature(&temperature);
 
         #if DEBUG == 1
-          Serial.print("bmp180 temperature ");  Serial.print(temperature);  Serial.println(" C");
+          Serial.print("bmp180 temperature  ");  Serial.print(temperature);  Serial.println(" C");
         #endif // DEBUG
 
         #if NARODMON == 1
@@ -674,7 +672,7 @@ void readSensors()
 
   #if BH1750_EXIST == 1
    #if DEBUG == 1
-     Serial.println("readSensors:       BH1750");
+     Serial.println("readSensors:        BH1750");
    #endif //DEBUG
    if(!bh1750_error)
    {
@@ -683,7 +681,7 @@ void readSensors()
     lux = lightMeter.readLightLevel();
 
     #if DEBUG == 1
-      Serial.print("BH1750             ");
+      Serial.print("BH1750              ");
       Serial.print(lux);
       Serial.println(" lux");
     #endif //DEBUG
@@ -756,7 +754,7 @@ void readSensors()
 
   #if ANALOG_SENSOR == 1
    #if DEBUG == 1
-    Serial.print("readSensors:       Analog sensor: "); Serial.println(analogRead(ANALOG_PIN));
+    Serial.print("readSensors:        Analog sensor: "); Serial.println(analogRead(ANALOG_PIN));
    #endif //DEBUG
 
     #if NARODMON == 1
@@ -769,7 +767,7 @@ void readSensors()
     if(!htu21_error)
     {
        #if DEBUG == 1
-          Serial.println("readSensors:       HTU21");
+          Serial.println("readSensors:        HTU21");
        #endif //DEBUG
 
         htu21_h = htu21.readHumidity();
@@ -880,7 +878,7 @@ void readSensors()
       resetInfo = ESP.getResetInfoPtr();
 
       #if DEBUG == 1
-          Serial.print("Wake code:         ");Serial.print(resetInfo->reason);Serial.print("- ");
+          Serial.print("Wake code:          ");Serial.print(resetInfo->reason);Serial.print("- ");
       #endif //DEBUG
 
       //switch reset reason
