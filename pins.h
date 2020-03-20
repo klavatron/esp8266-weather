@@ -23,7 +23,7 @@
 #endif
 
 #if DHT_EXIST == 1
-    #define DHT11_SENSOR_PIN A0
+    #define DHT_SENSOR_PIN 5
 #endif //DHT_EXIST
 
 #if DALLAS_EXIST == 1

@@ -59,14 +59,14 @@ void setup()
     #if WEBCONFIG == 1
       muxSwitchTo(MUX_BUTTON_PIN);
       if(analogRead(A0) > 300) //if mux MUX_BUTTON_PIN is high -> configboot
-      { 
+      {
         #if DEBUG == 1
           Serial.println("Entering configuration mode");
         #endif
         WiFi.mode(WIFI_AP_STA);
         WiFi.begin(ssid, password);
 
-        while (WiFi.waitForConnectResult() != WL_CONNECTED) 
+        while (WiFi.waitForConnectResult() != WL_CONNECTED)
         {
           WiFi.begin(ssid, password);
           #if DEBUG == 1
@@ -343,11 +343,11 @@ void setup()
     #endif //ANALOG_SENSOR
 
     #if DHT_EXIST == 1
-      delay(50);
-      dht11.attach(DHT11_SENSOR_PIN);
-      #if DEBUG == 1
-        Serial.println("DHT11 init");
-      #endif //DEBUG
+        #if DEBUG == 1
+             Serial.println("DHT                 init");
+        #endif //DEBUG
+        dht.begin();
+        delay(100);
     #endif //DHT_EXIST
 
     #if HTU21_EXIST == 1
@@ -756,56 +756,43 @@ void readSensors()
   #endif //BH1750_EXIST
 
   #if DHT_EXIST == 1
-    #if DEBUG == 1
-     Serial.println("readSensors: DHT");
-    #endif //DEBUG
 
-    dht11.update();
-    float dht11_t=0.0;
-    float dht11_h=0.0;
 
-    switch (dht11.getLastError())
-    {
-      case DHT_ERROR_OK:
-          char msg[128];
-          dht11_t=dht11.getTemperatureInt();
-          dht11_h=dht11.getHumidityInt();
-          sprintf(msg, "Temperature = %dC, Humidity = %d%%", dht11_t, dht11_h);
-
-          #if DEBUG == 1
-              Serial.println(msg);
-          #endif //DEBUG
-          break;
-
-      case DHT_ERROR_START_FAILED_1:
-          #if DEBUG == 1
-              Serial.println("Error: start failed (stage 1)");
-          #endif //DEBUG
-          break;
-
-      case DHT_ERROR_START_FAILED_2:
-          #if DEBUG == 1
-              Serial.println("Error: start failed (stage 2)");
-          #endif //DEBUG
-          break;
-
-      case DHT_ERROR_READ_TIMEOUT:
-          #if DEBUG == 1
-              Serial.println("Error: read timeout");
-          #endif //DEBUG
-          break;
-
-      case DHT_ERROR_CHECKSUM_FAILURE:
-          #if DEBUG == 1
-              Serial.println("Error: checksum error");
-          #endif //DEBUG
-          break;
+ float newT = dht.readTemperature();
+    // Read temperature as Fahrenheit (isFahrenheit = true)
+    //float newT = dht.readTemperature(true);
+    // if temperature read failed, don't change t value
+    if (isnan(newT)) {
+        #if DEBUG == 1
+            Serial.println("Failed to read from DHT sensor!");
+        #endif //DEBUG
+      dht_t = -1;
     }
+    else {
+     dht_t = newT;
+    }
+    // Read Humidity
+    float newH = dht.readHumidity();
+    // if humidity read failed, don't change h value
+    if (isnan(newH)) {
+        #if DEBUG == 1
+            Serial.println("Failed to read from DHT sensor!");
+        #endif //DEBUG
+      dht_h = -1;
+    }
+    else {
+      dht_h = newH;
+
+    }
+    #if DEBUG == 1
+        Serial.print("DHT_T: ");Serial.print(dht_t);Serial.print(" ");
+        Serial.print("DHT_H: ");Serial.println(dht_h);
+    #endif //DEBUG
     #if NARODMON == 1
       POST_string += "&";  POST_string += narodmonDevId;
-      POST_string += "02=";  POST_string += floatToString(dht11_h);
+      POST_string += "AA=";  POST_string += floatToString(dht_h);
       POST_string += "&"; POST_string += narodmonDevId;
-      POST_string += "04="; POST_string += floatToString(dht11_t);
+      POST_string += "AB="; POST_string += floatToString(dht_t);
     #endif //NARODMON
   #endif //DHT_EXIST
 

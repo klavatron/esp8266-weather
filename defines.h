@@ -107,8 +107,14 @@ void runOnce(); // main function for deep sleep mode
 #endif //BH1750_EXIST
 
 #if DHT_EXIST == 1
-  #include <dht.h>
-  DHT dht11 = DHT();
+  #include <Adafruit_Sensor.h>
+  #include <DHT.h>
+  #define DHTTYPE    DHT11
+//#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+  DHT dht(DHT_SENSOR_PIN, DHTTYPE);
+  float dht_t = 0.0;
+  float dht_h = 0.0;
 #endif //DHT_EXIST
 
 #if HTU21_EXIST == 1 // <-------- i2c
