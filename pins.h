@@ -42,3 +42,11 @@
     const int mux_control_pins[] = {14, 12, 13}; // control pins for mux S1,S2,S3
     const int mux_data_line = A0; //esp8266 input pin
 #endif
+
+#if WEBCONFIG == 1
+    #if MUX_EXIST == 1
+        #define MUX_BUTTON_PIN 0 //multiplexed pin for button if
+    #endif
+    //#define BUTTON_PIN 5 todo
+
+#endif

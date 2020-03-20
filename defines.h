@@ -14,6 +14,7 @@
 #define ANALOG_SENSOR 1 // Analog sensor
 #define DHT_EXIST 0   // dht11 sensor enabled
 #define MUX_EXIST 1   // analog multiplexer
+#define WEBCONFIG 1 //enable web configurator
 
 //error flags if errors detected
 bool oled_error = false;
@@ -65,6 +66,17 @@ void runOnce(); // main function for deep sleep mode
 #if WIFI == 1
   #include <ESP8266WiFi.h>
   #include "wifi.cfg.h"
+  #if WEBCONFIG == 1
+    #include <WiFiClient.h>
+    #include <ESP8266WebServer.h>
+    #include <ESP8266mDNS.h>
+    #include <ESP8266HTTPUpdateServer.h>
+
+    const char* mdnshost = "esp8266-webupdate";
+
+    ESP8266WebServer httpServer(80);
+    ESP8266HTTPUpdateServer httpUpdater;
+  #endif
 #endif //WIFI
 
 #if DALLAS_EXIST == 1

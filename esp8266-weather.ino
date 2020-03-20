@@ -56,6 +56,45 @@ void setup()
       }
     #endif
 
+    #if WEBCONFIG == 1
+      muxSwitchTo(MUX_BUTTON_PIN);
+      if(analogRead(A0) > 300) //if mux MUX_BUTTON_PIN is high -> configboot
+      { 
+        #if DEBUG == 1
+          Serial.println("Entering configuration mode");
+        #endif
+        WiFi.mode(WIFI_AP_STA);
+        WiFi.begin(ssid, password);
+
+        while (WiFi.waitForConnectResult() != WL_CONNECTED) 
+        {
+          WiFi.begin(ssid, password);
+          #if DEBUG == 1
+            Serial.println("WiFi failed, retrying.");
+          #endif
+        }
+
+        MDNS.begin(mdnshost);
+        #if DEBUG == 1
+          Serial.println("In configuration mode");
+        #endif
+        httpUpdater.setup(&httpServer);
+        httpServer.begin();
+
+        MDNS.addService("http", "tcp", 80);
+        #if DEBUG == 1
+          Serial.println("WEB UPDATER");
+          Serial.printf("HTTPUpdateServer ready! Open http://%s.local/update in your browser\n Or IPaddress", mdnshost);
+        #endif
+        while(1) // loop()
+        {
+          httpServer.handleClient();
+          MDNS.update();
+        }
+      }
+      delay(100);
+    #endif
+
     #if USE_SLEEP_MODE == 0 // if not using deep sleep
       lastUpdateMillis = millis();
     #endif
@@ -76,9 +115,9 @@ void setup()
     #endif //USELED
 
     #if OLED == 1
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // bug. always TRUE // Address 0x3D for 128x64, 0x3C for 128x32 and some 128x64 oled displays 
+      if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // bug. always TRUE // Address 0x3D for 128x64, 0x3C for 128x32 and some 128x64 oled displays
         #if DEBUG == 1
-          Serial.println("OLED initialization error"); 
+          Serial.println("OLED initialization error");
         #endif
         oled_error = true;
       }
@@ -88,7 +127,7 @@ void setup()
           Serial.println("OLED initialization Ok");
         #endif
       }
-      
+
       if(!oled_error)
       {
         delay(300);
