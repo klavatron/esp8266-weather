@@ -10,9 +10,10 @@
 *           OLED    i2c   2.0.1 Adafruit SSD1306 oled driver library for monochrome 128x64 and 128x32 displays https://github.com/adafruit/Adafruit_SSD1306
 *           BH1750  i2c   1.1.4 Christopher Laws https://github.com/claws/BH1750.git
 *           HTU21   i2c   1.0.2 Adafruit HTU21DF Library with modified begin() function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
-*           dth11         Adafruit DHT sensor library 1.3.0 https://github.com/adafruit/DHT-sensor-library
+*           dth11         Adafruit DHT sensor library 1.3.8 https://github.com/adafruit/DHT-sensor-library
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git
 *           Analog        You need to use voltage divider to make signal in range 0..1v
+*           Multiplexer   8-ch analog Multiplexer hc4051 with voltage divider to 1v
 *
 *  You need to change:
             Remove .example for narodmon.cfg.h.example and wifi.cfg.h.example
@@ -41,6 +42,19 @@ void setup()
     #endif //MOSFETSENSORS
 
     delay(100);
+
+    #if MUX_EXIST == 1
+        #if DEBUG == 1
+          Serial.println("Multiplexer         init");
+        #endif
+
+      pinMode(mux_data_line, INPUT);
+
+      for (int i=0; i<3; i++)
+      {
+        pinMode(mux_control_pins[i], OUTPUT);
+      }
+    #endif
 
     #if USE_SLEEP_MODE == 0 // if not using deep sleep
       lastUpdateMillis = millis();
@@ -315,7 +329,11 @@ void setup()
 
     #endif //HTU21_EXIST
 
-    Serial.println("=============== END OF CONFIG ==============="); Serial.println("");
+
+
+    #if DEBUG == 1
+      Serial.println("=============== END OF CONFIG ==============="); Serial.println("");
+    #endif
     delay(100);
 
     runOnce();
@@ -763,6 +781,31 @@ void readSensors()
     #endif //NARODMON
   #endif //ANALOG_SENSOR
 
+  #if MUX_EXIST == 1
+    int channel_data = 0;
+
+    for (int mux_channel = 0; mux_channel < 8; mux_channel++)
+    {
+      #if DEBUG == 1
+        Serial.println("Mux channel swithed");
+      #endif
+      muxSwitchTo(mux_channel);
+
+      channel_data = analogRead(mux_data_line);
+      #if DEBUG == 1
+        Serial.print("Channel: "); Serial.print(mux_channel);Serial.print(" Data: "); Serial.println(channel_data);
+      #endif
+
+      #if NARODMON == 1
+        POST_string += "&"; POST_string += narodmonDevId;
+        POST_string += muxPrefix; POST_string += (String)mux_channel;
+        POST_string += "="; POST_string += floatToString(channel_data);
+
+      #endif //NARODMON
+      delay(100);
+    }
+  #endif
+
   #if HTU21_EXIST == 1
     if(!htu21_error)
     {
@@ -1028,3 +1071,15 @@ void readSensors()
     }
   }
 #endif //BMP_EXIST
+
+#if MUX_EXIST == 1
+void muxSwitchTo(int which_channel)
+{
+  for (int input_pin = 0; input_pin < 3; input_pin++)
+  {
+    int pin_state = bitRead(which_channel, input_pin);
+    // turn the pin on or off:
+    digitalWrite(mux_control_pins[input_pin],pin_state);
+  }
+}
+#endif

@@ -13,6 +13,7 @@
 #define DALLAS_EXIST 1  // onewire ds18b20 sensors enabled
 #define ANALOG_SENSOR 1 // Analog sensor
 #define DHT_EXIST 0   // dht11 sensor enabled
+#define MUX_EXIST 1   // analog multiplexer
 
 //error flags if errors detected
 bool oled_error = false;
@@ -29,8 +30,8 @@ bool wifi_error = false;
 
 #include "pins.h"
 
-//if using pin to powering sensors 
-#if MOSFETSENSORS == 1 
+//if using pin to powering sensors
+#if MOSFETSENSORS == 1
   void turnSensorsON();
   void turnSensorsOFF();
 #endif
@@ -47,7 +48,7 @@ bool wifi_error = false;
 
 String floatToString(float src, char decimal_point = '.'); //convert float value to a proper string
 void readSensors(); //read sensors, collect data to query string
-unsigned long lastUpdateMillis; //providing time delay between sensors data update 
+unsigned long lastUpdateMillis; //providing time delay between sensors data update
 unsigned long currentUpdateMillis;
 const unsigned long updateInterval = 30000; // 30000 = 30 sec
 bool update_flag = false; //if ready to update
@@ -114,7 +115,7 @@ Adafruit_HTU21DF htu21 = Adafruit_HTU21DF();
 
     #define SCREEN_WIDTH 128 // OLED display width, in pixels
     #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-    
+
     // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
    // #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
     Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -127,3 +128,8 @@ Adafruit_HTU21DF htu21 = Adafruit_HTU21DF();
 //    #endif
     void displayDraw();
 #endif //OLED
+
+#if MUX_EXIST == 1
+    String muxPrefix = "A";  //prefix for mux sensors i.e. A0,A1...A7 for A
+    void muxSwitchTo(int);
+#endif

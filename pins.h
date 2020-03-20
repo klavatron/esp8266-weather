@@ -1,5 +1,5 @@
 #pragma once
-  
+
   static const uint8_t   D0 = 16;
   //static const uint8_t D1 = 5;
   //static const uint8_t D2 = 4;
@@ -37,3 +37,8 @@
 #if USELED == 1
     #define INDICATORLED  5  // led indicator
 #endif //USELED
+
+#if MUX_EXIST == 1
+    const int mux_control_pins[] = {14, 12, 13}; // control pins for mux S1,S2,S3
+    const int mux_data_line = A0; //esp8266 input pin
+#endif
