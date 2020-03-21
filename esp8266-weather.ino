@@ -488,7 +488,9 @@ void goto_sleep()
     turnSensorsOFF();
   #endif //MOSFETSENSORS
 
-  ledBlink(400, 3);
+  #if USELED == 1
+    ledBlink(400, 3);
+  #endif
   ESP.deepSleep(SLEEPING_TIME, WAKE_RF_DEFAULT); //20 sec
  // ESP.deepSleep(SLEEPING_TIME, WAKE_RF_DISABLED); //20 sec
 
@@ -529,7 +531,9 @@ void send_message(String data)
           Serial.println("               reboot in 10 sec              ");
           Serial.println("---------------------------------------------");
         #endif //DEBUG
-        ledBlink(50, 5);
+        #if USELED == 1
+          ledBlink(50, 5);
+        #endif
         ESP.deepSleep(10000, WAKE_RF_DEFAULT); //sleep 10 sec
       }
 
@@ -586,7 +590,9 @@ void send_message(String data)
         Serial.println("               reboot in 10 sec              ");
         Serial.println("---------------------------------------------");
       #endif // DEBUG
-      ledBlink(100, 5);
+      #if USELED == 1
+        ledBlink(100, 5);
+      #endif
       ESP.deepSleep(10000, WAKE_RF_DEFAULT); //sleep 10 sec
 
       #if DEBUG == 1
