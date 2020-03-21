@@ -1,19 +1,19 @@
 #pragma once
 
 #define DEBUG 1   // serial logging enabled
-#define USELED 1  // led indicator enabled
+#define USELED 0  // led indicator enabled
 #define USE_SLEEP_MODE 1 // powersaving sleep mode enabled
 #define MOSFETSENSORS 1 // using mosfet to powering sensors
 #define WIFI 1 // wifi connection enabled
-#define OLED 1    // i2c oled screen enabled
+#define OLED 0    // i2c oled screen enabled
 #define NARODMON 1  // sending data to narodmon enabled
 #define BMP_EXIST 1  // i2c bmp075 presure sensor enabled
 #define BH1750_EXIST 1 // i2c bh1750 light sensor enabled
 #define HTU21_EXIST 1  // i2c HTU21 humidity sensor enabled (address 0x40)
-#define DALLAS_EXIST 1  // onewire ds18b20 sensors enabled
-#define ANALOG_SENSOR 1 // Analog sensor
+#define DALLAS_EXIST 0  // onewire ds18b20 sensors enabled
+#define ANALOG_SENSOR 0 // Analog sensor
 #define DHT_EXIST 0   // dht11 sensor enabled
-#define MUX_EXIST 1   // analog multiplexer
+#define MUX_EXIST 0   // analog multiplexer
 #define WEBCONFIG 1 //enable web configurator
 
 //error flags if errors detected
@@ -73,7 +73,7 @@ void runOnce(); // main function for deep sleep mode
     #include <ESP8266HTTPUpdateServer.h>
 
     const char* mdnshost = "esp8266-webupdate";
-
+    bool isConfigMode = false;
     ESP8266WebServer httpServer(80);
     ESP8266HTTPUpdateServer httpUpdater;
   #endif

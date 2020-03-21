@@ -57,8 +57,19 @@ void setup()
     #endif
 
     #if WEBCONFIG == 1
-      muxSwitchTo(MUX_BUTTON_PIN);
-      if(analogRead(A0) > 300) //if mux MUX_BUTTON_PIN is high -> configboot
+      #if MUX_EXIST == 1
+          muxSwitchTo(MUX_BUTTON_PIN);
+          if(analogRead(A0) > 300){
+            isConfigMode = true;
+          }
+      #else
+          pinMode(BUTTON_PIN, INPUT_PULLUP); 
+          if(!digitalRead(BUTTON_PIN)){
+            isConfigMode = true;
+          }
+      #endif
+      
+      if(isConfigMode) //if mux MUX_BUTTON_PIN is high -> configboot
       {
         #if DEBUG == 1
           Serial.println("Entering configuration mode");

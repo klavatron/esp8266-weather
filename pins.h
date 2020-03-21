@@ -12,6 +12,9 @@
   //static const uint8_t D9 = 3;
   //static const uint8_t D10= 1;
 
+/*
+GPIOs 6,7,8,9,10 unusable
+*/
 //if I2C used
 #if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1)
     #define WIRESDA 14 //esp8266 sda
@@ -46,7 +49,9 @@
 #if WEBCONFIG == 1
     #if MUX_EXIST == 1
         #define MUX_BUTTON_PIN 0 //multiplexed pin for button if
+    #else
+        #define BUTTON_PIN 5
     #endif
-    //#define BUTTON_PIN 5 todo
+
 
 #endif
