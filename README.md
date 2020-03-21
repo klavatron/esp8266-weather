@@ -13,7 +13,7 @@ This is a rough sketch of home weather station based on esp8266-201, esp8866-12f
 - Breadboard
 - bmp180 - barometer and thermometer
 - BH1750 - Digital Light Sensor
-- HTU21 - Humidiry Sensor
+- HTU21 - Humidity Sensor
 - LED + resistor
 - wires
 
@@ -38,7 +38,7 @@ This is a rough sketch of home weather station based on esp8266-201, esp8866-12f
 - Esp8266-201 with antenna
 - bmp180 - barometer and thermometer
 - BH1750 - Digital Light Sensor
-- HTU21 - Humidiry Sensor
+- HTU21 - Humidity Sensor
 - ds18b20 - termometers
 - Capacitive soil moisture sensor
 - 7333 LDO 3.3v
