@@ -89,13 +89,13 @@ void setup()
         #if DEBUG == 1
           Serial.println("In configuration mode");
         #endif
-        httpUpdater.setup(&httpServer);
+        httpUpdater.setup(&httpServer, update_path, update_username, update_password);
         httpServer.begin();
 
         MDNS.addService("http", "tcp", 80);
         #if DEBUG == 1
-          Serial.println("WEB UPDATER");
-          Serial.printf("HTTPUpdateServer ready! Open http://%s.local/update in your browser\n Or IPaddress", mdnshost);
+          Serial.print("WEB UPDATER on "); Serial.println(WiFi.localIP());
+          Serial.printf("HTTPUpdateServer ready! Open http://%s.local%s in your browser and login with username '%s' and password '%s'\n", mdnshost, update_path, update_username, update_password);
         #endif
         while(1) // loop()
         {

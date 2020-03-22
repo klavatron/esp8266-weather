@@ -72,7 +72,6 @@ void runOnce(); // main function for deep sleep mode
     #include <ESP8266mDNS.h>
     #include <ESP8266HTTPUpdateServer.h>
 
-    const char* mdnshost = "esp8266-webupdate";
     bool isConfigMode = false;
     ESP8266WebServer httpServer(80);
     ESP8266HTTPUpdateServer httpUpdater;

@@ -1,2 +1,11 @@
+#pragma once
+
 const char* ssid     = "SSID"; // WLAN ssid
 const char* password = "password"; // WLAN password
+
+#if WEBCONFIG == 1
+  const char* mdnshost = "esp8266-webupdate"; //mdns hostname
+  const char* update_path = "/firmware";      //web path to update page
+  const char* update_username = "admin";      //update page login
+  const char* update_password = "admin";      //update page password
+#endif
