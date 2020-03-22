@@ -74,21 +74,62 @@ void setup()
         #if DEBUG == 1
           Serial.println("Entering configuration mode");
         #endif
-        WiFi.mode(WIFI_AP_STA);
+        WiFi.mode(WIFI_STA);
         WiFi.begin(ssid, password);
 
-        while (WiFi.waitForConnectResult() != WL_CONNECTED)
+        // Wait for connection
+        while ((WiFi.status() != WL_CONNECTED) && sta_connection_attempts) 
         {
-          WiFi.begin(ssid, password);
+          delay(1000);
           #if DEBUG == 1
-            Serial.println("WiFi failed, retrying.");
+            Serial.print(".");
+          #endif
+          sta_connection_attempts --;
+        }
+        
+        //if cant connect in STA mode, create AP
+        if(sta_connection_attempts<=0)
+        {
+          #if DEBUG == 1
+            Serial.println("AP mode");
+          #endif
+          
+          WiFi.mode(WIFI_AP);
+          WiFi.softAP(ap_ssid, ap_password);
+          IPAddress myIP = WiFi.softAPIP();
+          
+          #if DEBUG == 1
+            Serial.print("AP IP address: ");
+            Serial.println(myIP);
           #endif
         }
-
-        MDNS.begin(mdnshost);
+        else 
+        {
+          #if DEBUG == 1
+            Serial.println("");
+            Serial.print("Connected to ");
+            Serial.println(ssid);
+            Serial.print("IP address: ");
+            Serial.println(WiFi.localIP());
+          #endif
+        }
+        
+        if (!MDNS.begin(mdnshost)) 
+        {       
+          #if DEBUG == 1
+            Serial.println("Error setting up MDNS responder!");
+          #endif
+          
+          while (1) {
+            delay(1000);
+          }
+        }
+        
         #if DEBUG == 1
+          Serial.println("mDNS responder started");
           Serial.println("In configuration mode");
         #endif
+        
         httpUpdater.setup(&httpServer, update_path, update_username, update_password);
         httpServer.begin();
 
