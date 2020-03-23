@@ -1,21 +1,21 @@
 #pragma once
 #include "Arduino.h"
 
-#define DEBUG 1   // serial logging enabled
-#define USELED 0  // led indicator enabled
-#define USE_SLEEP_MODE 1 // powersaving sleep mode enabled
-#define MOSFETSENSORS 1 // using mosfet to powering sensors
-#define WIFI 1 // wifi connection enabled
-#define OLED 0    // i2c oled screen enabled
-#define NARODMON 1  // sending data to narodmon enabled
-#define BMP_EXIST 1  // i2c bmp075 presure sensor enabled
-#define BH1750_EXIST 1 // i2c bh1750 light sensor enabled
-#define HTU21_EXIST 1  // i2c HTU21 humidity sensor enabled (address 0x40)
-#define DALLAS_EXIST 0  // onewire ds18b20 sensors enabled
-#define ANALOG_SENSOR 0 // Analog sensor
-#define DHT_EXIST 0   // dht11 sensor enabled
-#define MUX_EXIST 0   // analog multiplexer
-#define WEBCONFIG 1 //enable web configurator
+#define DEBUG 1          // serial logging enabled
+#define USELED 0         // led indicator enabled
+#define USE_SLEEP_MODE 0 // powersaving sleep mode enabled
+#define MOSFETSENSORS 0  // using mosfet to powering sensors
+#define WIFI 1           // wifi connection enabled
+#define OLED 0           // i2c oled screen enabled
+#define NARODMON 0       // sending data to narodmon enabled
+#define BMP_EXIST 0      // i2c bmp075 presure sensor enabled
+#define BH1750_EXIST 0   // i2c bh1750 light sensor enabled
+#define HTU21_EXIST 0    // i2c HTU21 humidity sensor enabled (address 0x40)
+#define DALLAS_EXIST 0   // onewire ds18b20 sensors enabled
+#define ANALOG_SENSOR 0  // Analog sensor
+#define DHT_EXIST 0      // dht11 sensor enabled
+#define MUX_EXIST 0      // analog multiplexer
+#define WEBCONFIG 0      //enable web configurator
 
 //error flags if errors detected
 bool oled_error = false;
@@ -27,7 +27,7 @@ bool dht_error = false;
 bool wifi_error = false;
 
 #if DEBUG == 1
-    #define SERIAL_SPEED 115200
+  #define SERIAL_SPEED 115200
 #endif
 
 #include "pins.h"
@@ -39,29 +39,29 @@ bool wifi_error = false;
 #endif
 
 #if USE_SLEEP_MODE == 1
-    #define SLEEPING_TIME 600e6 // 20 sec 20e6; 600e6 - 10 min
-    void checkResetInfo();
+  #define SLEEPING_TIME 600e6 // 20 sec 20e6; 600e6 - 10 min
+  void checkResetInfo();
 #endif //USE_SLEEP_MODE
 
 //if using pin for led indicator
 #if USELED == 1
-    void ledBlink(int, int); // blink led (duration, count)
-#endif //USELED
+  void ledBlink(int, int); // blink led (duration, count)
+#endif                   //USELED
 
 String floatToString(float src, char decimal_point = '.'); //convert float value to a proper string
-void readSensors(); //read sensors, collect data to query string
-unsigned long lastUpdateMillis; //providing time delay between sensors data update
+void readSensors();                                        //read sensors, collect data to query string
+unsigned long lastUpdateMillis;                            //providing time delay between sensors data update
 unsigned long currentUpdateMillis;
 const unsigned long updateInterval = 30000; // 30000 = 30 sec
-bool update_flag = false; //if ready to update
-void runOnce(); // main function for deep sleep mode
+bool update_flag = false;                   //if ready to update
+void runOnce();                             // main function for deep sleep mode
 
 #if NARODMON == 1
   #include "narodmon.cfg.h"
-    String POST_string = ""; //query string
-    bool send_allow_flag = false; // allow http request
-    unsigned long lastSendMillis;
-    unsigned long currentSendMillis;
+  String POST_string = "";      //query string
+  bool send_allow_flag = false; // allow http request
+  unsigned long lastSendMillis;
+  unsigned long currentSendMillis;
 #endif //NARODMON
 
 #if WIFI == 1
@@ -76,7 +76,7 @@ void runOnce(); // main function for deep sleep mode
     bool isConfigMode = false;
     ESP8266WebServer httpServer(80);
     ESP8266HTTPUpdateServer httpUpdater;
-  #endif
+  #endif //WEBCONFIG
 #endif //WIFI
 
 #if DALLAS_EXIST == 1
@@ -112,45 +112,36 @@ void runOnce(); // main function for deep sleep mode
 #if DHT_EXIST == 1
   #include <Adafruit_Sensor.h>
   #include <DHT.h>
-  #define DHTTYPE    DHT11
-//#define DHTTYPE    DHT22     // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+  #define DHTTYPE DHT11
+  //#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+  //#define DHTTYPE    DHT21     // DHT 21 (AM2301)
   DHT dht(DHT_SENSOR_PIN, DHTTYPE);
   float dht_t = 0.0;
   float dht_h = 0.0;
 #endif //DHT_EXIST
 
 #if HTU21_EXIST == 1 // <-------- i2c
-#include <Wire.h>
-#include "Adafruit_HTU21DF.h"
-Adafruit_HTU21DF htu21 = Adafruit_HTU21DF();
+  #include <Wire.h>
+  #include "Adafruit_HTU21DF.h"
+  Adafruit_HTU21DF htu21 = Adafruit_HTU21DF();
 
   float htu21_h = 0.0;
   float htu21_t = 0.0;
 #endif //HTU21_EXIST
 
 #if OLED == 1 // <-------- i2c
-    #include <Wire.h>
-    #include <Adafruit_GFX.h>
-    #include <Adafruit_SSD1306.h>
+  #include <Wire.h>
+  #include <Adafruit_GFX.h>
+  #include <Adafruit_SSD1306.h>
 
-    #define SCREEN_WIDTH 128 // OLED display width, in pixels
-    #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+  #define SCREEN_WIDTH 128 // OLED display width, in pixels
+  #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-    // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-   // #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
-    Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-//    #define OLED_RESET LED_BUILTIN //4  <---------------------------------------
-//    Adafruit_SSD1306 display(OLED_RESET);
-//
-//    #if (SSD1306_LCDHEIGHT != 64)
-//        #error("Height incorrect, please fix Adafruit_SSD1306.h!");
-//    #endif
-    void displayDraw();
+  Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+  void displayDraw();
 #endif //OLED
 
 #if MUX_EXIST == 1
-    String muxPrefix = "A";  //prefix for mux sensors i.e. A0,A1...A7 for A
-    void muxSwitchTo(int);
-#endif
+  String muxPrefix = "A"; //prefix for mux sensors i.e. A0,A1...A7 for A
+  void muxSwitchTo(int);
+#endif // MUX_EXIST

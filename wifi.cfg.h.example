@@ -1,16 +1,16 @@
 #pragma once
 
-const char* ssid     = "SSID"; // WLAN ssid
-const char* password = "password"; // WLAN password
+const char *ssid = "YOUR-WIFI";                // WLAN ssid
+const char *password = "YOUR-PASSWORD"; // WLAN password
 
 #if WEBCONFIG == 1
-  const char* mdnshost = "esp8266-webupdate"; //mdns hostname
-  const char* update_path = "/firmware";      //web path to update page
-  const char* update_username = "admin";      //update page login
-  const char* update_password = "admin";      //update page password
+  const char *mdnshost = "esp8266-webupdate"; //mdns hostname
+  const char *update_path = "/firmware";      //web path to update page
+  const char *update_username = "admin";      //update page login
+  const char *update_password = "admin";      //update page password
 
   //if no STA connectin, create AP
   int sta_connection_attempts = 15; // 15 sec
-  const char* ap_ssid = "weatherap";
-  const char* ap_password = "admin";  
-#endif
+  const char *ap_ssid = "weatherap";          //ESSID of ESP8266 in configuration mode
+  const char *ap_password = "admin";
+#endif // WEBCONFIG

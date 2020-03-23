@@ -1,3 +1,5 @@
+;libs for platformio
+
 lib_deps =
   Adafruit BMP085 Unified
   Adafruit GFX Library
