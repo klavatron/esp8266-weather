@@ -1,4 +1,5 @@
 #pragma once
+#include "Arduino.h"
 
 #define DEBUG 1   // serial logging enabled
 #define USELED 0  // led indicator enabled
@@ -88,7 +89,9 @@ void runOnce(); // main function for deep sleep mode
 
   int countOfDallasTerm = 0; //number of detected 18b20 thermometers
   DeviceAddress tempDeviceAddress;
-
+  void printAddress(DeviceAddress);
+  String aGetTempAddress(DeviceAddress);
+  String aGetTemperature(DeviceAddress);
 #endif //DALLAS_EXIST
 
 #if BMP_EXIST == 1 // <-------- i2c
@@ -96,6 +99,7 @@ void runOnce(); // main function for deep sleep mode
   #include <Adafruit_BMP085_U.h>
   Adafruit_BMP085_Unified presureSensor = Adafruit_BMP085_Unified(10085);
   sensors_event_t event;
+  void getBMPsensor();
 #endif //BMP_EXIST
 
 #if BH1750_EXIST == 1 // <-------- i2c
