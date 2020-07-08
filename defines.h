@@ -2,7 +2,7 @@
 #include "Arduino.h"
 
 #define DEBUG 1          // serial logging enabled
-#define USELED 0         // led indicator enabled
+#define USELED 1         // led indicator enabled
 #define USE_SLEEP_MODE 0 // powersaving sleep mode enabled
 #define MOSFETSENSORS 0  // using mosfet to powering sensors
 #define WIFI 1           // wifi connection enabled
@@ -14,6 +14,7 @@
 #define DALLAS_EXIST 0   // onewire ds18b20 sensors enabled
 #define ANALOG_SENSOR 0  // Analog sensor
 #define DHT_EXIST 0      // dht11 sensor enabled
+#define SHT_EXIST 0      // sht1x sensor enabled
 #define MUX_EXIST 0      // analog multiplexer
 #define WEBCONFIG 0      //enable web configurator
 
@@ -24,6 +25,7 @@ bool bh1750_error = false;
 bool htu21_error = false;
 bool dallas_error = false;
 bool dht_error = false;
+bool sht_error = false;
 bool wifi_error = false;
 
 #if DEBUG == 1
@@ -119,6 +121,15 @@ void runOnce();                             // main function for deep sleep mode
   float dht_t = 0.0;
   float dht_h = 0.0;
 #endif //DHT_EXIST
+
+
+#if SHT_EXIST == 1
+  #include <SHT1x-ESP.h>
+  SHT1x sht(WIRESDA, WIRESCL);
+  float sht_t_c;
+  float sht_t_f;
+  float sht_h;
+#endif //SHT_EXIST
 
 #if HTU21_EXIST == 1 // <-------- i2c
   #include <Wire.h>
