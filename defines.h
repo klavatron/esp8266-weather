@@ -2,10 +2,10 @@
 #include "Arduino.h"
 
 #define DEBUG 1          // serial logging enabled
-#define USELED 1         // led indicator enabled
+#define USELED 0         // led indicator enabled
 #define USE_SLEEP_MODE 0 // powersaving sleep mode enabled
 #define MOSFETSENSORS 0  // using mosfet to powering sensors
-#define WIFI 1           // wifi connection enabled
+#define WIFI 0           // wifi connection enabled
 #define OLED 0           // i2c oled screen enabled
 #define NARODMON 0       // sending data to narodmon enabled
 #define BMP_EXIST 0      // i2c bmp075 presure sensor enabled
@@ -98,6 +98,7 @@ void runOnce();                             // main function for deep sleep mode
 
 #if BMP_EXIST == 1 // <-------- i2c
   #include <Wire.h>
+  #include <Adafruit_Sensor.h>
   #include <Adafruit_BMP085_U.h>
   Adafruit_BMP085_Unified presureSensor = Adafruit_BMP085_Unified(10085);
   sensors_event_t event;
@@ -125,10 +126,10 @@ void runOnce();                             // main function for deep sleep mode
 
 #if SHT_EXIST == 1
   #include <SHT1x-ESP.h>
-  SHT1x sht(WIRESDA, WIRESCL);
-  float sht_t_c;
-  float sht_t_f;
-  float sht_h;
+  SHT1x sht(SHT_SDA, SHT_SCL);
+  float sht_t_c = 0.0;
+  float sht_t_f = 0.0;
+  float sht_h = 0.0;
 #endif //SHT_EXIST
 
 #if HTU21_EXIST == 1 // <-------- i2c

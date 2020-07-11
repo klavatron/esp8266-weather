@@ -33,6 +33,11 @@ GPIOs 6,7,8,9,10 unusable*
   #define DHT_SENSOR_PIN 5
 #endif //DHT_EXIST
 
+#if SHT_EXIST == 1
+  #define SHT_SDA 0
+  #define SHT_SCL 2
+#endif //SHT_EXIST
+
 #if DALLAS_EXIST == 1
   #define ONE_WIRE_BUS 13
 #endif //DALLAS_EXIST
