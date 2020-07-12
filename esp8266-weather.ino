@@ -437,6 +437,13 @@ void setup()
     delay(100);
   #endif //DHT_EXIST
 
+
+  #if SHT_EXIST == 1
+    #if DEBUG == 1
+      Serial.println("SHT                 init");
+    #endif //DEBUG
+  #endif //SHT_EXIST
+
   #if HTU21_EXIST == 1
     delay(50);
 
@@ -912,6 +919,57 @@ void readSensors()
       #endif //NARODMON
     }
   #endif //DHT_EXIST
+
+  #if SHT_EXIST == 1
+    float newT = sht.readTemperatureC();
+
+    if (isnan(newT))
+    {
+      #if DEBUG == 1
+        Serial.println("Failed to read from SHT sensor!");
+      #endif //DEBUG
+      sht_error = true;
+    }
+    else
+    {
+      sht_t_c = newT;
+    }
+    // Read Humidity
+    float newH = sht.readHumidity();
+
+    if (isnan(newH))
+    {
+      #if DEBUG == 1
+        Serial.println("Failed to read from SHT sensor!");
+      #endif //DEBUG
+      sht_error = true;
+    }
+    else
+    {
+      sht_h = newH;
+    }
+    if(!sht_error)
+    {
+      #if DEBUG == 1
+        Serial.print("SHT_T:              ");
+        Serial.print(sht_t_c, DEC);
+        Serial.println(" C");
+        Serial.print("SHT_H:              ");
+        Serial.print(sht_h);
+        Serial.println(" %");
+      #endif //DEBUG
+      #if NARODMON == 1
+        POST_string += "&";
+        POST_string += narodmonDevId;
+        POST_string += "BA=";
+        POST_string += floatToString(sht_h);
+        POST_string += "&";
+        POST_string += narodmonDevId;
+        POST_string += "BB=";
+        POST_string += floatToString(sht_t_c);
+      #endif //NARODMON
+    }
+  #endif //SHT_EXIST
 
   #if ANALOG_SENSOR == 1
     #if DEBUG == 1
