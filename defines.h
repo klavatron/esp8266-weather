@@ -126,7 +126,7 @@ void runOnce();                             // main function for deep sleep mode
 
 #if SHT_EXIST == 1
   #include <SHT1x-ESP.h>
-  SHT1x sht(SHT_SDA, SHT_SCL);
+  SHT1x sht(SHT_SDA, SHT_SCL, SHT1x::Voltage::DC_3_3v);
   float sht_t_c = 0.0;
   float sht_t_f = 0.0;
   float sht_h = 0.0;
