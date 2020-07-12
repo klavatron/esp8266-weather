@@ -96,6 +96,7 @@ void runOnce();                             // main function for deep sleep mode
 
 #if BMP_EXIST == 1 // <-------- i2c
   #include <Wire.h>
+  #include <Adafruit_Sensor.h>
   #include <Adafruit_BMP085_U.h>
   Adafruit_BMP085_Unified presureSensor = Adafruit_BMP085_Unified(10085);
   sensors_event_t event;

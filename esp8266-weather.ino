@@ -6,7 +6,8 @@
 *           ESP8266 BoardVersion 2.6.3 https://github.com/esp8266/Arduino
 *
 *  List of supported sensors:
-*           bmp180  i2c   Adafruit BMP085 Unified 1.0.0 https://github.com/adafruit/Adafruit_BMP085_Unified
+*                         Adafruit Unified Sensor Driver 1.1.4 https://github.com/adafruit/Adafruit_Sensor
+*           bmp180  i2c   Adafruit BMP085 Unified 1.1.0 https://github.com/adafruit/Adafruit_BMP085_Unified
 *                         Adafruit GFX Library 1.1.8 https://github.com/adafruit/Adafruit-GFX-Library
 *           OLED    i2c   2.0.1 Adafruit SSD1306 oled driver library for monochrome 128x64 and 128x32 
 *                               displays https://github.com/adafruit/Adafruit_SSD1306
