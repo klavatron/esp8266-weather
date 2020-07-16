@@ -15,6 +15,7 @@
 *           HTU21   i2c   1.0.2 Adafruit HTU21DF Library with modified begin() 
 *                               function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
 *           dth11         Adafruit DHT sensor library 1.3.8 https://github.com/adafruit/DHT-sensor-library
+*           SHT1x   2wire       beegee-tokyo  https://github.com/beegee-tokyo/SHT1x-ESP
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git
 *           *Analog        You need to use voltage divider to keep analog voltage in range 0..1v (LoLin NodeMCU already has it)
 *           *Multiplexer   8-ch analog Multiplexer hc4051. You need to use voltage divider to keep analog 
@@ -437,6 +438,13 @@ void setup()
     dht.begin();
     delay(100);
   #endif //DHT_EXIST
+
+
+  #if SHT_EXIST == 1
+    #if DEBUG == 1
+      Serial.println("SHT                 init");
+    #endif //DEBUG
+  #endif //SHT_EXIST
 
   #if HTU21_EXIST == 1
     delay(50);
@@ -913,6 +921,57 @@ void readSensors()
       #endif //NARODMON
     }
   #endif //DHT_EXIST
+
+  #if SHT_EXIST == 1
+    float newT = sht.readTemperatureC();
+
+    if (isnan(newT))
+    {
+      #if DEBUG == 1
+        Serial.println("Failed to read from SHT sensor!");
+      #endif //DEBUG
+      sht_error = true;
+    }
+    else
+    {
+      sht_t_c = newT;
+    }
+    // Read Humidity
+    float newH = sht.readHumidity();
+
+    if (isnan(newH))
+    {
+      #if DEBUG == 1
+        Serial.println("Failed to read from SHT sensor!");
+      #endif //DEBUG
+      sht_error = true;
+    }
+    else
+    {
+      sht_h = newH;
+    }
+    if(!sht_error)
+    {
+      #if DEBUG == 1
+        Serial.print("SHT_T:              ");
+        Serial.print(sht_t_c, DEC);
+        Serial.println(" C");
+        Serial.print("SHT_H:              ");
+        Serial.print(sht_h);
+        Serial.println(" %");
+      #endif //DEBUG
+      #if NARODMON == 1
+        POST_string += "&";
+        POST_string += narodmonDevId;
+        POST_string += "BA=";
+        POST_string += floatToString(sht_h);
+        POST_string += "&";
+        POST_string += narodmonDevId;
+        POST_string += "BB=";
+        POST_string += floatToString(sht_t_c);
+      #endif //NARODMON
+    }
+  #endif //SHT_EXIST
 
   #if ANALOG_SENSOR == 1
     #if DEBUG == 1
