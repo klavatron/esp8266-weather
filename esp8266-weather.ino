@@ -551,9 +551,9 @@ String floatToString(float src, char decimal_point)
     data = "-";
   }
   int a, b, c;
-  a = (int)round(src * 100);
-  b = (int)abs(floor(a / 100));
-  c = (int)abs(floor(a % 100));
+  a = (int)abs(round(src * 100));
+  b = (int)floor(a / 100);
+  c = (int)floor(a % 100);
   data += String(b);
   data += String(decimal_point);
 
