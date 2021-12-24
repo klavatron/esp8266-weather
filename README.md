@@ -3,7 +3,6 @@ Esp8266 based weather station for narodmon.ru or other webservices
 
 This is a rough sketch of home weather station based on esp8266-201, esp8866-12f or LoLin NodeMCU module. It gets data from sensors and sends to narodmon.ru.
 
-### Connect 3k resistor between RST and GPIO16/D0 to enable ESP8266 wakeup from deepsleep
 
 ## NodeMCU board
 ![alt text](https://github.com/klavatron/esp8266-weather/blob/master/pcbs/breadboard/weather-st2.jpg)
