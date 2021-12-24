@@ -12,8 +12,8 @@
 *           OLED    i2c   2.0.1 Adafruit SSD1306 oled driver library for monochrome 128x64 and 128x32 
 *                               displays https://github.com/adafruit/Adafruit_SSD1306
 *           BH1750  i2c   1.1.4 Christopher Laws https://github.com/claws/BH1750.git
-*           HTU21   i2c   1.0.2 Adafruit HTU21DF Library with modified begin() 
-*                               function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
+*           !HTU21  i2c   1.0.2 Adafruit HTU21DF Library with modified begin() 
+*             -->               function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
 *           dth11         Adafruit DHT sensor library 1.3.8 https://github.com/adafruit/DHT-sensor-library
 *           SHT1x   2wire       beegee-tokyo  https://github.com/beegee-tokyo/SHT1x-ESP
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git
@@ -37,13 +37,14 @@
 *
 * If you don't use oled screen or debug logging, switch USE_SLEEP_MODE to 1 for powersaving.
 */
-
+#include "Arduino.h"
 #include "defines.h"
 
 void setup()
 {
-  #if DEBUG == 1
-    Serial.begin(115200);
+
+#if DEBUG == 1
+      Serial.begin(115200);
     Serial.print("\r\n\nSketch: ");
     Serial.println(__FILE__);
     Serial.println("Compiled: " __DATE__ ", " __TIME__);
@@ -71,6 +72,7 @@ void setup()
   #endif // MUX_EXIST
 
   #if WEBCONFIG == 1
+    // check if webconfig button pressed
     #if MUX_EXIST == 1
       muxSwitchTo(MUX_BUTTON_PIN);
       if (analogRead(A0) > 300)
@@ -84,11 +86,12 @@ void setup()
         isConfigMode = true;
       }
     #endif // MUX_EXIST
+    // ENDOF check if webconfig button pressed
 
     if (isConfigMode) //if mux MUX_BUTTON_PIN is high -> configboot
     {
       #if DEBUG == 1
-        Serial.println("Entering configuration mode");
+        Serial.println("Entering configuration mode");                                                                        
       #endif // DEBUG
 
       WiFi.mode(WIFI_STA);
@@ -179,7 +182,7 @@ void setup()
   #endif //NARODMON
 
   //if I2C used
-  #if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1)
+  #if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1) 
     Wire.begin(WIRESDA, WIRESCL);
     delay(100);
   #endif
@@ -438,7 +441,6 @@ void setup()
     dht.begin();
     delay(100);
   #endif //DHT_EXIST
-
 
   #if SHT_EXIST == 1
     #if DEBUG == 1
@@ -1161,6 +1163,7 @@ void checkResetInfo()
       #if USELED == 1
         ledBlink(500, 2);
       #endif //USELED
+            
       break;
 
     case 1:
@@ -1207,6 +1210,7 @@ void checkResetInfo()
         Serial.println("Wake up from deep-sleep");
         Serial.println("Preparing request");
       #endif //DEBUG
+
       #if NARODMON == 1
         if (!wifi_error)
         {

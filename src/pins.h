@@ -20,7 +20,7 @@ GPIOs 6,7,8,9,10 unusable*
 */
 
 //if I2C used
-#if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1)
+#if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1) 
   #define WIRESDA 14 //esp8266 sda
   #define WIRESCL 12 //esp8266 scl
 #endif

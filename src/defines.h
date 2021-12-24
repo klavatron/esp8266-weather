@@ -3,20 +3,20 @@
 
 #define DEBUG 1          // serial logging enabled
 #define USELED 0         // led indicator enabled
-#define USE_SLEEP_MODE 0 // powersaving sleep mode enabled
-#define MOSFETSENSORS 0  // using mosfet to powering sensors
+#define USE_SLEEP_MODE 1 // powersaving sleep mode enabled
+#define MOSFETSENSORS 1  // using mosfet to powering sensors
 #define WIFI 1           // wifi connection enabled
 #define OLED 0           // i2c oled screen enabled
-#define NARODMON 0       // sending data to narodmon enabled
-#define BMP_EXIST 0      // i2c bmp075 presure sensor enabled
-#define BH1750_EXIST 0   // i2c bh1750 light sensor enabled
-#define HTU21_EXIST 0    // i2c HTU21 humidity sensor enabled (address 0x40)
-#define DALLAS_EXIST 0   // onewire ds18b20 sensors enabled
+#define NARODMON 1       // sending data to narodmon enabled
+#define BMP_EXIST 1      // i2c bmp075 presure sensor enabled
+#define BH1750_EXIST 1   // i2c bh1750 light sensor enabled
+#define HTU21_EXIST 1    // i2c HTU21 humidity sensor enabled (address 0x40)
+#define DALLAS_EXIST 1   // onewire ds18b20 sensors enabled
 #define ANALOG_SENSOR 0  // Analog sensor
 #define DHT_EXIST 0      // dht11 sensor enabled
 #define SHT_EXIST 0      // sht1x sensor enabled
 #define MUX_EXIST 0      // analog multiplexer
-#define WEBCONFIG 0      //enable web configurator
+#define WEBCONFIG 1      //enable web configurator
 
 //error flags if errors detected
 bool oled_error = false;
@@ -122,7 +122,6 @@ void runOnce();                             // main function for deep sleep mode
   float dht_t = 0.0;
   float dht_h = 0.0;
 #endif //DHT_EXIST
-
 
 #if SHT_EXIST == 1
   #include <SHT1x-ESP.h>
