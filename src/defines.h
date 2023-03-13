@@ -1,6 +1,17 @@
 #pragma once
 #include "Arduino.h"
 
+/*
+ * #define SOME_FEATURE 0 
+ * bool some_feature_error = false;
+ * 
+ * #if SOME_FEATURE == 1
+ *    #include ...
+ *    float ...
+ *    ....
+ * #endif //SOME_FEATURE
+ */
+
 #define DEBUG 1          // serial logging enabled
 #define USELED 0         // led indicator enabled
 #define USE_SLEEP_MODE 1 // powersaving sleep mode enabled
@@ -11,6 +22,7 @@
 #define BMP_EXIST 1      // i2c bmp075 presure sensor enabled
 #define BH1750_EXIST 1   // i2c bh1750 light sensor enabled
 #define HTU21_EXIST 1    // i2c HTU21 humidity sensor enabled (address 0x40)
+#define CCS811_EXIST 1   // i2c CCS811 eCO2 sensor enabled
 #define DALLAS_EXIST 1   // onewire ds18b20 sensors enabled
 #define ANALOG_SENSOR 0  // Analog sensor
 #define DHT_EXIST 0      // dht11 sensor enabled
@@ -18,11 +30,23 @@
 #define MUX_EXIST 0      // analog multiplexer
 #define WEBCONFIG 1      //enable web configurator
 
+#include "pins.h"
+
+String floatToString(float src, char decimal_point = '.'); //convert float value to a proper string
+void readSensors();                                        //read sensors, collect data to query string
+unsigned long lastUpdateMillis;                            //providing time delay between sensors data update
+unsigned long currentUpdateMillis;
+const unsigned long updateInterval = 30000; // 30000 = 30 sec
+bool update_flag = false;                   //if ready to update
+void runOnce();                             // main function for deep sleep mode
+
+
 //error flags if errors detected
 bool oled_error = false;
 bool bmp_error = false;
 bool bh1750_error = false;
 bool htu21_error = false;
+bool ccs811_error = false;
 bool dallas_error = false;
 bool dht_error = false;
 bool sht_error = false;
@@ -30,15 +54,13 @@ bool wifi_error = false;
 
 #if DEBUG == 1
   const uint32_t SERIAL_SPEED=115200;
-#endif
-
-#include "pins.h"
+#endif //DEBUG
 
 //if using pin to powering sensors
 #if MOSFETSENSORS == 1
   void turnSensorsON();
   void turnSensorsOFF();
-#endif
+#endif //MOSFETSENSORS
 
 #if USE_SLEEP_MODE == 1
   #define SLEEPING_TIME 600e6 // 20 sec 20e6; 600e6 - 10 min
@@ -48,15 +70,7 @@ bool wifi_error = false;
 //if using pin for led indicator
 #if USELED == 1
   void ledBlink(int, int); // blink led (duration, count)
-#endif                   //USELED
-
-String floatToString(float src, char decimal_point = '.'); //convert float value to a proper string
-void readSensors();                                        //read sensors, collect data to query string
-unsigned long lastUpdateMillis;                            //providing time delay between sensors data update
-unsigned long currentUpdateMillis;
-const unsigned long updateInterval = 30000; // 30000 = 30 sec
-bool update_flag = false;                   //if ready to update
-void runOnce();                             // main function for deep sleep mode
+#endif //USELED
 
 #if NARODMON == 1
   #include "narodmon.cfg.h"
@@ -139,6 +153,14 @@ void runOnce();                             // main function for deep sleep mode
   float htu21_h = 0.0;
   float htu21_t = 0.0;
 #endif //HTU21_EXIST
+
+#if CCS811_EXIST == 1 // <-------- i2c
+  #include <Wire.h>
+  #include "Adafruit_CCS811.h"
+  Adafruit_CCS811 ccs;
+  float ccs811_eco2 = 0.0;
+  float ccs811_tvoc = 0.0;
+#endif //CCS811_EXIST
 
 #if OLED == 1 // <-------- i2c
   #include <Wire.h>

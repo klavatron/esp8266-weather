@@ -1,6 +1,6 @@
 /*
 *  This sketch sends data via HTTP POST requests to narodmon.ru service.
-*  Copyright <klavatron> 2015-2020
+*  Copyright <klavatron> 2015-2023
 *
 *  ***DRAFT***
 *           ESP8266 BoardVersion 2.6.3 https://github.com/esp8266/Arduino
@@ -14,6 +14,7 @@
 *           BH1750  i2c   1.1.4 Christopher Laws https://github.com/claws/BH1750.git
 *           !HTU21  i2c   1.0.2 Adafruit HTU21DF Library with modified begin() 
 *             -->               function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
+*           CCS811  i2c   1.1.1 Adafruit CCS811 https://github.com/adafruit/Adafruit_CCS811
 *           dth11         Adafruit DHT sensor library 1.3.8 https://github.com/adafruit/DHT-sensor-library
 *           SHT1x   2wire       beegee-tokyo  https://github.com/beegee-tokyo/SHT1x-ESP
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git
@@ -181,7 +182,7 @@ void setup()
   #endif //NARODMON
 
   //if I2C used
-  #if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1) 
+  #if (OLED == 1) || (BMP_EXIST == 1) || (BH1750_EXIST == 1) || (HTU21_EXIST == 1) || (CCS811_EXIST == 1)
     Wire.begin(WIRESDA, WIRESCL);
     delay(100);
   #endif
@@ -464,6 +465,26 @@ void setup()
       #endif //DEBUG
     }
   #endif //HTU21_EXIST
+
+  #if CCS811_EXIST == 1 // <-------- i2c
+    delay(50);
+
+    if(!ccs.begin()){
+      #if DEBUG == 1
+        Serial.println("Failed to start sensor! Please check your wiring.");
+      #endif //DEBUG
+      ccs811_error = true;
+    }
+    else{
+      #if DEBUG == 1
+        Serial.println("CCS811              init");
+      #endif //DEBUG
+    }
+
+    // Wait for the sensor to be ready
+    while(!ccs.available());
+  #endif //CCS811_EXIST
+
 
   #if DEBUG == 1
     Serial.println("=============== END OF CONFIG ===============");
@@ -1056,6 +1077,46 @@ void readSensors()
       #endif //DEBUG
     }
   #endif //HTU21_EXIST
+
+  #if CCS811_EXIST == 1
+    if(!ccs811_error)
+    {
+      #if DEBUG == 1
+        Serial.println("readSensors:       CCS811");
+      #endif //DEBUG
+      if(ccs.available())
+      {
+        ccs811_eco2 = ccs.geteCO2();
+        ccs811_tvoc = ccs.getTVOC();
+      }
+
+      #if DEBUG == 1
+        Serial.print("eCO2                ");
+        Serial.println(ccs811_eco2);
+
+        Serial.print("TVOC ppm            ");
+        Serial.println(ccs811_tvoc);
+
+      #endif //DEBUG
+
+      #if NARODMON == 1
+        POST_string += "&";
+        POST_string += narodmonDevId;
+        POST_string += "09=";
+        POST_string += floatToString(ccs811_eco2);
+        POST_string += "&";
+        POST_string += narodmonDevId;
+        POST_string += "10=";
+        POST_string += floatToString(ccs811_tvoc);
+      #endif //NARODMON
+    }
+    else
+    {
+      #if DEBUG == 1
+        Serial.print("CCS811 Error");
+      #endif //DEBUG
+    }
+  #endif //CCS811_EXIST
 
   #if NARODMON == 1
     #if DEBUG == 1
