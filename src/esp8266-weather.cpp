@@ -42,9 +42,8 @@
 
 void setup()
 {
-
-#if DEBUG == 1
-      Serial.begin(115200);
+  #if DEBUG == 1
+    Serial.begin(SERIAL_SPEED);
     Serial.print("\r\n\nSketch: ");
     Serial.println(__FILE__);
     Serial.println("Compiled: " __DATE__ ", " __TIME__);

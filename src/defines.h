@@ -29,7 +29,7 @@ bool sht_error = false;
 bool wifi_error = false;
 
 #if DEBUG == 1
-  #define SERIAL_SPEED 115200
+  const uint32_t SERIAL_SPEED=115200;
 #endif
 
 #include "pins.h"
