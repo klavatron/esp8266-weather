@@ -1113,7 +1113,7 @@ void readSensors()
     else
     {
       #if DEBUG == 1
-        Serial.print("CCS811 Error");
+        Serial.println("CCS811 Error");
       #endif //DEBUG
     }
   #endif //CCS811_EXIST
