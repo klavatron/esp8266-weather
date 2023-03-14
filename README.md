@@ -44,7 +44,7 @@ This is a rough sketch of home weather station based on esp8266-201, esp8866-12f
 - 7333 LDO 3.3v
 - resistors, capacitors
 
-![alt text](https://github.com/klavatron/esp8266-weather/blob/master/pcbs/analog_multiplexer/1.jpg)
+![alt text](https://github.com/klavatron/esp8266-weather/blob/master/pcbs/esp8266-12f-analog_multiplexer/1.jpg)
   Plants monitor
 ### Parts used:
 
