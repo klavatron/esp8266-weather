@@ -100,7 +100,7 @@
 
 
 ### Esp8266-12 с мультиплексором для подключения нескольких датчиков влажности грунта:
-![alt text](https://github.com/klavatron/esp8266-weather/blob/master/pcbs/analog_multiplexer/1.jpg)
+![alt text](https://github.com/klavatron/esp8266-weather/blob/master/pcbs/esp8266-12f-analog_multiplexer/1.jpg)
 
 - Esp8266-12F
 - подготовленная плата с распаянными резисторами, конденсаторами, стабилизатором питания 7333
