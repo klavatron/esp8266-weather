@@ -1079,7 +1079,7 @@ void readSensors()
     if(!ccs811_error)
     {
       #if DEBUG == 1
-        Serial.println("readSensors:       CCS811");
+        Serial.println("readSensors:        CCS811");
       #endif //DEBUG
       if(ccs.checkDataReady() == true)
       {
