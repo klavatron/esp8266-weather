@@ -14,7 +14,7 @@
 *           BH1750  i2c   1.1.4 Christopher Laws https://github.com/claws/BH1750.git
 *           !HTU21  i2c   1.0.2 Adafruit HTU21DF Library with modified begin() 
 *             -->               function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
-*           CCS811  i2c   1.1.1 Adafruit CCS811 https://github.com/adafruit/Adafruit_CCS811
+*           CCS811  i2c   1.0.1 DFRobot_CCS811 https://github.com/DFRobot/DFRobot_CCS811
 *           dth11         Adafruit DHT sensor library 1.3.8 https://github.com/adafruit/DHT-sensor-library
 *           SHT1x   2wire       beegee-tokyo  https://github.com/beegee-tokyo/SHT1x-ESP
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git
@@ -469,7 +469,7 @@ void setup()
   #if CCS811_EXIST == 1 // <-------- i2c
     delay(50);
 
-    if(!ccs.begin()){
+    if(ccs.begin() != 0){
       #if DEBUG == 1
         Serial.println("Failed to start sensor! Please check your wiring.");
       #endif //DEBUG
@@ -480,9 +480,6 @@ void setup()
         Serial.println("CCS811              init");
       #endif //DEBUG
     }
-
-    // Wait for the sensor to be ready
-    while(!ccs.available());
   #endif //CCS811_EXIST
 
 
@@ -1084,12 +1081,21 @@ void readSensors()
       #if DEBUG == 1
         Serial.println("readSensors:       CCS811");
       #endif //DEBUG
-      if(ccs.available())
+      if(ccs.checkDataReady() == true)
       {
-        ccs811_eco2 = ccs.geteCO2();
-        ccs811_tvoc = ccs.getTVOC();
+        ccs811_eco2 = ccs.getCO2PPM();
+        ccs811_tvoc = ccs.getTVOCPPB();
       }
-
+      else
+      {
+        ccs811_eco2 = 0.0;
+        ccs811_tvoc = 0.0;
+        ccs811_error = true;
+        #if DEBUG == 1
+          Serial.println("CCS811 Error: no data to read");
+        #endif //DEBUG
+      }
+      ccs.writeBaseLine(0x447B);
       #if DEBUG == 1
         Serial.print("eCO2                ");
         Serial.println(ccs811_eco2);

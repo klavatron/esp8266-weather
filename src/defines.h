@@ -156,8 +156,12 @@ bool wifi_error = false;
 
 #if CCS811_EXIST == 1 // <-------- i2c
   #include <Wire.h>
-  #include "Adafruit_CCS811.h"
-  Adafruit_CCS811 ccs;
+  #include "DFRobot_CCS811.h"
+  /*
+ * IIC address default 0x5A, the address becomes 0x5B if the ADDR_SEL is soldered.
+ */
+//DFRobot_CCS811 CCS811(&Wire, /*IIC_ADDRESS=*/0x5A);
+  DFRobot_CCS811 ccs;;
   float ccs811_eco2 = 0.0;
   float ccs811_tvoc = 0.0;
 #endif //CCS811_EXIST
