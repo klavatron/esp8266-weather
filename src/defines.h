@@ -15,31 +15,30 @@
 #define DEBUG 1          // serial logging enabled
 #define USELED 0         // led indicator enabled
 #define USE_SLEEP_MODE 1 // powersaving sleep mode enabled
-#define MOSFETSENSORS 1  // using mosfet to powering sensors
+#define MOSFETSENSORS 0  // using mosfet to powering sensors
 #define WIFI 1           // wifi connection enabled
 #define OLED 0           // i2c oled screen enabled
 #define NARODMON 1       // sending data to narodmon enabled
-#define BMP_EXIST 1      // i2c bmp075 presure sensor enabled
-#define BH1750_EXIST 1   // i2c bh1750 light sensor enabled
-#define HTU21_EXIST 1    // i2c HTU21 humidity sensor enabled (address 0x40)
-#define CCS811_EXIST 1   // i2c CCS811 eCO2 sensor enabled
-#define DALLAS_EXIST 1   // onewire ds18b20 sensors enabled
+#define BMP_EXIST 0      // i2c bmp075 presure sensor enabled
+#define BH1750_EXIST 0   // i2c bh1750 light sensor enabled
+#define HTU21_EXIST 0    // i2c HTU21 humidity sensor enabled (address 0x40)
+#define CCS811_EXIST 0   // i2c CCS811 eCO2 sensor enabled. With adafruit lib it may not work
+#define DALLAS_EXIST 0   // onewire ds18b20 sensors enabled
 #define ANALOG_SENSOR 0  // Analog sensor
 #define DHT_EXIST 0      // dht11 sensor enabled
 #define SHT_EXIST 0      // sht1x sensor enabled
 #define MUX_EXIST 0      // analog multiplexer
-#define WEBCONFIG 1      //enable web configurator
+#define WEBCONFIG 1      // enable web configurator. In case of esp-201 it may not work
 
 #include "pins.h"
 
-String floatToString(float src, char decimal_point = '.'); //convert float value to a proper string
+String floatToString(float src, char decimal_point = '.'); //Transform the float value to a string with custom decimal point symbol
 void readSensors();                                        //read sensors, collect data to query string
 unsigned long lastUpdateMillis;                            //providing time delay between sensors data update
 unsigned long currentUpdateMillis;
 const unsigned long updateInterval = 30000; // 30000 = 30 sec
 bool update_flag = false;                   //if ready to update
 void runOnce();                             // main function for deep sleep mode
-
 
 //error flags if errors detected
 bool oled_error = false;

@@ -597,7 +597,7 @@ String floatToString(float src, char decimal_point)
       delay(10000);
 
     #if DEBUG == 1
-      Serial.print("Off To Sleep for ");
+      Serial.print("Going to sleep for ");
       Serial.print(round(SLEEPING_TIME / 60e6));
       Serial.println(" min");
     #endif //DEBUG
