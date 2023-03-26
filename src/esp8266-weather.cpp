@@ -14,7 +14,7 @@
 *           BH1750  i2c   1.1.4 Christopher Laws https://github.com/claws/BH1750.git
 *           !HTU21  i2c   1.0.2 Adafruit HTU21DF Library with modified begin() 
 *             -->               function https://github.com/klavatron/Adafruit_HTU21DF_Library.git
-*           CCS811  i2c   1.0.1 DFRobot_CCS811 https://github.com/DFRobot/DFRobot_CCS811
+*           *(dont use it) CCS811  i2c   1.0.1 DFRobot_CCS811 https://github.com/DFRobot/DFRobot_CCS811
 *           dth11         Adafruit DHT sensor library 1.3.8 https://github.com/adafruit/DHT-sensor-library
 *           SHT1x   2wire       beegee-tokyo  https://github.com/beegee-tokyo/SHT1x-ESP
 *           ds18b20 onewire DallasTemperature 3.7.6 https://github.com/milesburton/Arduino-Temperature-Control-Library.git

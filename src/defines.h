@@ -22,7 +22,7 @@
 #define BMP_EXIST 0      // i2c bmp075 presure sensor enabled
 #define BH1750_EXIST 0   // i2c bh1750 light sensor enabled
 #define HTU21_EXIST 0    // i2c HTU21 humidity sensor enabled (address 0x40)
-#define CCS811_EXIST 0   // i2c CCS811 eCO2 sensor enabled. With adafruit lib it may not work
+#define CCS811_EXIST 0   // (dont use it) i2c CCS811 eCO2 sensor enabled.
 #define DALLAS_EXIST 0   // onewire ds18b20 sensors enabled
 #define ANALOG_SENSOR 0  // Analog sensor
 #define DHT_EXIST 0      // dht11 sensor enabled
